@@ -4,7 +4,7 @@ An ultra-lightweight market data terminal for Windows and macOS, with support fo
 
 一款可在 Windows 和 macOS 上运行的超轻量级行情终端，支持美股及期权策略。
 
-Current version: **0.5.0**
+Current version: **0.5.2**
 
 ## Features
 

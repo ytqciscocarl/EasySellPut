@@ -132,6 +132,99 @@ public class TableExporterTests : IDisposable
         Assert.Equal(3, wb.Worksheet("自选").LastRowUsed()!.RowNumber());  // data sheet untouched
     }
 
+    // ---- non-finite text must stay text in XLSX ----
+
+    [Fact]
+    public void Xlsx_NanAndInfinityText_StaysText_AndFiniteNumbersStayNumbers()
+    {
+        var table = new ExportTable
+        {
+            Name = "T",
+            Headers = ["代码", "价格"],
+            Rows =
+            [
+                ["NAN", "11.52"],
+                ["Infinity", "-1.25"],
+                ["-Infinity", "+2.43%"],
+                ["nan", "NaN"],
+            ],
+        };
+        var path = Path.Combine(_dir, "nan.xlsx");
+        TableExporter.WriteXlsx(table, path);   // used to throw ArgumentException (NaN or infinity)
+        using var wb = new XLWorkbook(path);
+        var ws = wb.Worksheet("T");
+        foreach (var (row, original) in new[] { (2, "NAN"), (3, "Infinity"), (4, "-Infinity"), (5, "nan") })
+        {
+            Assert.Equal(XLDataType.Text, ws.Cell(row, 1).DataType);
+            Assert.Equal(original, ws.Cell(row, 1).GetString());
+        }
+        Assert.Equal(XLDataType.Text, ws.Cell(5, 2).DataType);
+        Assert.Equal("NaN", ws.Cell(5, 2).GetString());
+        Assert.Equal(XLDataType.Number, ws.Cell(2, 2).DataType);
+        Assert.Equal(11.52, ws.Cell(2, 2).GetDouble());
+        Assert.Equal(-1.25, ws.Cell(3, 2).GetDouble());
+        Assert.Equal(2.43, ws.Cell(4, 2).GetDouble());
+    }
+
+    // ---- CSV formula guard ----
+
+    private string WriteCsvLines(ExportTable table)
+    {
+        var path = Path.Combine(_dir, Guid.NewGuid().ToString("N") + ".csv");
+        TableExporter.WriteCsv(table, path);
+        return File.ReadAllText(path, Encoding.UTF8);
+    }
+
+    [Fact]
+    public void Csv_formula_like_text_gets_a_leading_apostrophe()
+    {
+        var table = new ExportTable
+        {
+            Name = "T",
+            Headers = ["A", "B"],
+            Rows =
+            [
+                ["=HYPERLINK(\"http://x\",\"y\")", "@name"],
+                ["-5% drop on earnings", "+cmd|' /C calc'!A0"],
+                ["\tTabbed", "\rReturned"],
+            ],
+        };
+        var text = WriteCsvLines(table).Replace("\r\n", "\n");
+        Assert.Contains("\"'=HYPERLINK(\"\"http://x\"\",\"\"y\"\")\",'@name\n", text);
+        Assert.Contains("'-5% drop on earnings,'+cmd|' /C calc'!A0\n", text);
+        Assert.Contains("'\tTabbed,\"'\rReturned\"\n", text);
+    }
+
+    [Fact]
+    public void Csv_numbers_percents_and_plain_text_are_left_alone()
+    {
+        var table = new ExportTable
+        {
+            Name = "T",
+            Headers = ["A", "B", "C", "D", "E"],
+            Rows = [["-1.25", "+2.43%", "AAPL", "2026-11-13", "NAN"]],
+        };
+        var text = WriteCsvLines(table).Replace("\r\n", "\n");
+        Assert.Contains("\n-1.25,+2.43%,AAPL,2026-11-13,NAN\n", text);
+    }
+
+    [Fact]
+    public void Csv_metadata_values_get_the_same_guard()
+    {
+        var table = Sample() with
+        {
+            Metadata = [new("来源", "=cmd|' /C calc'!A0"), new("涨跌", "-1.25"), new("备注", "@alert")],
+        };
+        var text = WriteCsvLines(table).Replace("\r\n", "\n");
+        Assert.Contains("\n来源,'=cmd|' /C calc'!A0\n", text);
+        Assert.Contains("\n涨跌,-1.25\n", text);
+        Assert.Contains("\n备注,'@alert\n", text);
+    }
+
+    [Fact]
+    public void CsvEscape_keeps_its_plain_quoting_contract() =>
+        Assert.Equal("=1+1", TableExporter.CsvEscape("=1+1"));
+
     [Fact]
     public void No_metadata_means_no_info_sheet()
     {

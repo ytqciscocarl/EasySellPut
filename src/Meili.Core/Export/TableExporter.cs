@@ -24,12 +24,12 @@ public static class TableExporter
         var sb = new StringBuilder();
         sb.AppendLine(Join(table.Headers));
         foreach (var row in table.Rows)
-            sb.AppendLine(Join(row));
+            sb.AppendLine(JoinGuarded(row));
         // F9: provenance after one blank line, so the data block stays a clean table for Excel/pandas.
         if (table.Metadata.Count > 0)
         {
             sb.AppendLine();
-            foreach (var (k, v) in table.Metadata) sb.AppendLine(Join([k, v]));
+            foreach (var (k, v) in table.Metadata) sb.AppendLine(JoinGuarded([k, v]));
         }
         File.WriteAllText(path, sb.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
     }
@@ -100,6 +100,22 @@ public static class TableExporter
     private static string Join(IReadOnlyList<string> cells) =>
         string.Join(",", (cells ?? []).Select(CsvEscape));
 
+    /// <summary>Joins data or metadata cells; third-party text must not start a spreadsheet formula (see <see cref="GuardFormula"/>).</summary>
+    private static string JoinGuarded(IReadOnlyList<string> cells) =>
+        string.Join(",", (cells ?? []).Select(c => CsvEscape(GuardFormula(c))));
+
+    /// <summary>
+    /// CSV injection guard: Excel evaluates a cell starting with = + - @ tab or CR as a formula. Text that is not a
+    /// plain number gets one leading apostrophe; signed numbers and percents such as "-1.25" or "+2.43%" stay as they are.
+    /// </summary>
+    private static string GuardFormula(string? value)
+    {
+        var s = value ?? "";
+        if (s.Length > 0 && s[0] is '=' or '+' or '-' or '@' or '\t' or '\r' && !TryNumber(s, out _))
+            return "'" + s;
+        return s;
+    }
+
     private static string UniqueSheetName(string? raw, HashSet<string> used)
     {
         var name = string.IsNullOrWhiteSpace(raw) ? "Sheet" : raw.Trim();
@@ -118,13 +134,17 @@ public static class TableExporter
         return candidate;
     }
 
+    /// <summary>True only for finite numbers: "NAN" (a real ticker), "Infinity" and overflowing text stay text.</summary>
     private static bool TryNumber(string text, out double number)
     {
         number = 0;
         if (string.IsNullOrWhiteSpace(text)) return false;
         var t = text.Trim();
         if (t.EndsWith('%')) t = t[..^1].Trim();
-        return double.TryParse(t, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out number)
+        var parsed = double.TryParse(t, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out number)
             || double.TryParse(t, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out number);
+        if (parsed && double.IsFinite(number)) return true;
+        number = 0;
+        return false;
     }
 }

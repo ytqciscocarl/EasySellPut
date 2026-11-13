@@ -3,7 +3,10 @@
 #define MyAppName "EasySellPut"
 #define MyAppNameEn "EasySellPut"
 #define MyAppPublisher "美丽稻谷"
-#define MyAppVersion "0.5.0"
+; build\pack.ps1 passes /DMyAppVersion=<version from Directory.Build.props>; the default only applies to a manual ISCC run.
+#ifndef MyAppVersion
+  #define MyAppVersion "0.0.0"
+#endif
 #define MyAppExeName "EasySellPut.exe"
 #define MyAppAumid "MeiliDaogu.SellerTerminal"
 

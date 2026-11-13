@@ -23,6 +23,9 @@ $SetupLabel = "$ProductName-安装程序"
 # Read the version with a regex so a missing XML declaration or the Chinese metadata in the props file cannot break [xml].
 $Version = ([regex]::Match((Get-Content (Join-Path $Root "Directory.Build.props") -Raw), "<Version>([^<]+)</Version>")).Groups[1].Value
 if (-not $Version) { throw "Version not found in Directory.Build.props" }
+# The README must show the version being packed, so a release cannot ship with a stale number.
+$ReadmeVersion = ([regex]::Match((Get-Content (Join-Path $Root "README.md") -Raw), "Current version:\s*\*\*([^*\s]+)\*\*")).Groups[1].Value
+if ($ReadmeVersion -ne $Version) { throw "README.md says version '$ReadmeVersion' but Directory.Build.props says '$Version'. Update README.md before packing." }
 $PortablePackage = "$ProductName-$Version-windows-portable"
 $SetupPackage = "$ProductName-$Version-windows-installer"
 
@@ -107,7 +110,7 @@ try {
 
 Write-Host "=== Inno Setup installer ==="
 if (-not (Test-Path $Iscc)) { throw "ISCC.exe not found at $Iscc" }
-& $Iscc (Join-Path $Root "build\installer\setup.iss")
+& $Iscc "/DMyAppVersion=$Version" (Join-Path $Root "build\installer\setup.iss")
 if ($LASTEXITCODE -ne 0) { throw "ISCC failed ($LASTEXITCODE)" }
 
 $readme = @"
