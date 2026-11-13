@@ -4,7 +4,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <Version>0.5.2</Version>
+    <Version>0.5.3</Version>
     <Company>美丽稻谷</Company>
     <Product>EasySellPut</Product>
     <AssemblyTitle>EasySellPut</AssemblyTitle>
