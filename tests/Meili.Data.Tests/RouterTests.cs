@@ -1,5 +1,6 @@
 using Meili.Core.Abstractions;
 using Meili.Core.Models;
+using Meili.Core.Settings;
 using Meili.Data.Http;
 using Meili.Data.Routing;
 
@@ -44,6 +45,10 @@ public class RouterTests
     private static readonly DateTimeOffset T0 = new(2026, 11, 12, 15, 0, 0, TimeSpan.Zero);
 
     private static Quote Q(string s, string src) => new() { Symbol = s, Price = 10, Source = src };
+    /// <summary>A working source that has every symbol except <paramref name="lacking"/>.</summary>
+    private static FakeQuotes Lacks(string id, string lacking) => new(id, s => s.Where(x => x != lacking).Select(x => Q(x, id)).ToList());
+    private static int Asked(FakeQuotes f, string symbol) => f.Requests.Count(r => r.Contains(symbol));
+
     private static IReadOnlyList<Quote> Fail(IReadOnlyList<string> _) => throw new DataSourceException("x", DataErrorKind.Network, "SSL UNEXPECTED_EOF");
 
     private static FailoverRouter Router(params IDataProvider[] p) =>
@@ -95,76 +100,91 @@ public class RouterTests
         var r = Router(a, b);
         for (var i = 0; i < 5; i++) await r.GetQuotesAsync(["X"]);
         Assert.True(r.Health.IsAvailable("a"));
-        Assert.Equal(1, a.Calls); // miss memory: asked once, then left alone until the retry delay passes
+        Assert.Equal(5, a.Calls); // an all-empty answer is not remembered as a miss: asked every time
+    }
+
+    [Fact]
+    public async Task An_all_empty_answer_from_the_primary_remembers_nothing_so_it_is_asked_for_everything_next_time()
+    {
+        var hiccup = true;
+        var a = new FakeQuotes("a", s => hiccup ? [] : s.Select(x => Q(x, "a")).ToList());
+        var b = new FakeQuotes("b", s => s.Select(x => Q(x, "b")).ToList());
+        var r = Router(a, b);
+        r.Now = () => T0;
+        Assert.All(await r.GetQuotesAsync(["AAPL", "MSFT"]), q => Assert.Equal("b", q.Source));
+        hiccup = false;
+        Assert.All(await r.GetQuotesAsync(["AAPL", "MSFT"]), q => Assert.Equal("a", q.Source));
+        Assert.Equal(["AAPL", "MSFT"], a.Requests[1]);
+        Assert.True(r.Health.IsAvailable("a"));
     }
 
     [Fact]
     public async Task A_source_that_lacks_a_symbol_is_not_asked_again_until_the_retry_delay_passes()
     {
-        var a = new FakeQuotes("a", _ => []);
+        var a = Lacks("a", "X");
         var b = new FakeQuotes("b", s => s.Select(x => Q(x, "b")).ToList());
         var now = T0;
         var r = Router(a, b);
         r.Now = () => now;
-        for (var i = 0; i < 5; i++) Assert.Equal("b", Assert.Single(await r.GetQuotesAsync(["X"])).Source);
-        Assert.Equal(1, a.Calls);
+        for (var i = 0; i < 5; i++) Assert.Equal("b", (await r.GetQuotesAsync(["AAPL", "X"])).Single(q => q.Symbol == "X").Source);
+        Assert.Equal(1, Asked(a, "X"));
         Assert.Equal(5, b.Calls);
         now = T0.AddMinutes(2).AddSeconds(1);
-        await r.GetQuotesAsync(["X"]);
-        Assert.Equal(2, a.Calls);
+        await r.GetQuotesAsync(["AAPL", "X"]);
+        Assert.Equal(2, Asked(a, "X"));
         Assert.True(r.Health.IsAvailable("a"));
     }
 
     [Fact]
     public async Task Retry_delay_doubles_per_consecutive_miss_and_is_capped_at_30_minutes()
     {
-        var a = new FakeQuotes("a", _ => []);
+        var a = Lacks("a", "X");
         var b = new FakeQuotes("b", s => s.Select(x => Q(x, "b")).ToList());
         var now = T0;
         var r = Router(a, b);
         r.Now = () => now;
-        await r.GetQuotesAsync(["X"]);                       // miss 1: retry after 2 min
+        await r.GetQuotesAsync(["AAPL", "X"]);                       // miss 1: retry after 2 min
         foreach (var minutes in new[] { 2, 4, 8, 16 })       // misses 2 to 5: waits of 2, 4, 8, 16 min, then 32 (capped to 30)
         {
             now = now.AddMinutes(minutes).AddSeconds(-1);
-            var before = a.Calls;
-            await r.GetQuotesAsync(["X"]);
-            Assert.Equal(before, a.Calls);                   // one second early: still skipped
+            var before = Asked(a, "X");
+            await r.GetQuotesAsync(["AAPL", "X"]);
+            Assert.Equal(before, Asked(a, "X"));                   // one second early: still skipped
             now = now.AddSeconds(2);
-            await r.GetQuotesAsync(["X"]);
-            Assert.Equal(before + 1, a.Calls);
+            await r.GetQuotesAsync(["AAPL", "X"]);
+            Assert.Equal(before + 1, Asked(a, "X"));
         }
-        var calls = a.Calls;
+        var calls = Asked(a, "X");
         now = now.AddMinutes(29);
-        await r.GetQuotesAsync(["X"]);
-        Assert.Equal(calls, a.Calls);                        // 29 min < cap
+        await r.GetQuotesAsync(["AAPL", "X"]);
+        Assert.Equal(calls, Asked(a, "X"));                        // 29 min < cap
         now = now.AddMinutes(1).AddSeconds(1);
-        await r.GetQuotesAsync(["X"]);
-        Assert.Equal(calls + 1, a.Calls);                    // 30 min is the longest wait
+        await r.GetQuotesAsync(["AAPL", "X"]);
+        Assert.Equal(calls + 1, Asked(a, "X"));                    // 30 min is the longest wait
     }
 
     [Fact]
     public async Task A_hit_clears_the_miss_so_the_next_miss_starts_at_two_minutes_again()
     {
         var has = false;
-        var a = new FakeQuotes("a", s => has ? s.Select(x => Q(x, "a")).ToList() : []);
+        var a = new FakeQuotes("a", s => s.Where(x => has || x != "X").Select(x => Q(x, "a")).ToList());
         var b = new FakeQuotes("b", s => s.Select(x => Q(x, "b")).ToList());
         var now = T0;
         var r = Router(a, b);
         r.Now = () => now;
-        await r.GetQuotesAsync(["X"]);                       // miss 1
+        await r.GetQuotesAsync(["AAPL", "X"]);                       // miss 1
         now = now.AddMinutes(2).AddSeconds(1);
-        await r.GetQuotesAsync(["X"]);                       // miss 2 (delay now 4 min)
+        await r.GetQuotesAsync(["AAPL", "X"]);                       // miss 2 (delay now 4 min)
         now = now.AddMinutes(4).AddSeconds(1);
         has = true;
-        Assert.Equal("a", Assert.Single(await r.GetQuotesAsync(["X"])).Source); // hit: cleared
+        Assert.Equal("a", (await r.GetQuotesAsync(["AAPL", "X"])).Single(q => q.Symbol == "X").Source); // hit: cleared
         has = false;
-        var calls = a.Calls;
-        await r.GetQuotesAsync(["X"]);                       // asked at once (no memory), misses again: miss 1
-        Assert.Equal(calls + 1, a.Calls);
+        var calls = Asked(a, "X");
+        await r.GetQuotesAsync(["AAPL", "X"]);                       // asked at once (no memory), misses again: miss 1
+        Assert.Equal(calls + 1, Asked(a, "X"));
         now = now.AddMinutes(2).AddSeconds(1);
-        await r.GetQuotesAsync(["X"]);
-        Assert.Equal(calls + 2, a.Calls);                    // 2 min, not the 8 min a third consecutive miss would need
+        await r.GetQuotesAsync(["AAPL", "X"]);
+        Assert.Equal(calls + 2, Asked(a, "X"));                    // 2 min, not the 8 min a third consecutive miss would need
     }
 
     [Fact]
@@ -206,11 +226,11 @@ public class RouterTests
     [Fact]
     public async Task All_symbols_remembered_as_missing_throws_without_asking_anyone()
     {
-        var a = new FakeQuotes("a", _ => []);
+        var a = new FakeQuotes("a", s => s.Where(x => x == "AAPL").Select(x => Q(x, "a")).ToList());
         var b = new FakeQuotes("b", _ => []);
         var r = Router(a, b);
         r.Now = () => T0;
-        await Assert.ThrowsAsync<AllSourcesFailedException>(() => r.GetQuotesAsync(["X", "Y"]));
+        await r.GetQuotesAsync(["AAPL", "X", "Y"]);          // a answered AAPL, so its and b's lack of X and Y is remembered
         Assert.Equal((1, 1), (a.Calls, b.Calls));
         var ex = await Assert.ThrowsAsync<AllSourcesFailedException>(() => r.GetQuotesAsync(["X", "Y"]));
         Assert.Equal((1, 1), (a.Calls, b.Calls));            // nobody asked the second time
@@ -234,17 +254,17 @@ public class RouterTests
     [Fact]
     public async Task ForgetMisses_makes_every_source_askable_again_at_once()
     {
-        var a = new FakeQuotes("a", _ => []);
-        var b = new FakeQuotes("b", _ => []);
+        var a = Lacks("a", "X");
+        var b = Lacks("b", "X");
         var c = new FakeQuotes("c", s => s.Select(x => Q(x, "c")).ToList());
         var r = Router(a, b, c);
         r.Now = () => T0;
-        await r.GetQuotesAsync(["X"]);
-        await r.GetQuotesAsync(["X"]);
-        Assert.Equal((1, 1, 2), (a.Calls, b.Calls, c.Calls));
+        await r.GetQuotesAsync(["AAPL", "X"]);
+        await r.GetQuotesAsync(["AAPL", "X"]);
+        Assert.Equal((1, 1, 2), (Asked(a, "X"), Asked(b, "X"), Asked(c, "X")));
         r.ForgetMisses();
-        await r.GetQuotesAsync(["X"]);
-        Assert.Equal((2, 2, 3), (a.Calls, b.Calls, c.Calls));
+        await r.GetQuotesAsync(["AAPL", "X"]);
+        Assert.Equal((2, 2, 3), (Asked(a, "X"), Asked(b, "X"), Asked(c, "X")));
     }
 
     [Fact]
@@ -253,7 +273,7 @@ public class RouterTests
         var a = new HangingQuotes("a");
         var b = new FakeQuotes("b", s => s.Select(x => Q(x, "b")).ToList());
         var r = Router(a, b);
-        r.QuoteSourceBudget = TimeSpan.FromMilliseconds(50);
+        r.QuoteSourceBudget = () => TimeSpan.FromMilliseconds(50);
         var q = await r.GetQuotesAsync(["AAPL"]).WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("b", Assert.Single(q).Source);
         var h = r.Health.Get("a")!;
@@ -269,7 +289,7 @@ public class RouterTests
         var a = new HangingQuotes("a", ignoreToken: true);
         var b = new FakeQuotes("b", s => s.Select(x => Q(x, "b")).ToList());
         var r = Router(a, b);
-        r.QuoteSourceBudget = TimeSpan.FromMilliseconds(50);
+        r.QuoteSourceBudget = () => TimeSpan.FromMilliseconds(50);
         var q = await r.GetQuotesAsync(["AAPL"]).WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("b", Assert.Single(q).Source);
         Assert.Equal(1, r.Health.Get("a")!.Failures);
@@ -301,7 +321,7 @@ public class RouterTests
         var a = new HangingQuotes("a", ignoreToken: true);
         var b = new FakeQuotes("b", s => s.Select(x => Q(x, "b")).ToList());
         var r = Router(a, b);
-        r.QuoteSourceBudget = TimeSpan.FromMilliseconds(50);
+        r.QuoteSourceBudget = () => TimeSpan.FromMilliseconds(50);
         var q = await r.GetQuotesAsync(["AAPL"]).WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("b", Assert.Single(q).Source);
         a.Never.SetException(boom); // the call the router gave up on fails afterwards
@@ -320,6 +340,16 @@ public class RouterTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => t.WaitAsync(TimeSpan.FromSeconds(10)));
         Assert.Equal(0, r.Health.Get("a")!.Failures);
         Assert.Equal(0, b.Calls);
+    }
+
+    [Fact]
+    public void The_quote_budget_follows_the_network_settings_timeout_times_attempts()
+    {
+        using var d = new DataServices(new NetworkSettings(), gateway: TestHttp.Gateway(new FakeHandler(), retries: 1));
+        Assert.Equal(TimeSpan.FromSeconds(10), d.Router.QuoteSourceBudget());   // 5 s × (1 retry + 1)
+        d.Gateway.Settings.RequestTimeoutSeconds = 30;
+        d.Gateway.Settings.MaxRetries = 2;
+        Assert.Equal(TimeSpan.FromSeconds(90), d.Router.QuoteSourceBudget());
     }
 
     [Fact]

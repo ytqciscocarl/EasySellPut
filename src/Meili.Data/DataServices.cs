@@ -35,7 +35,10 @@ public sealed class DataServices : IDisposable
         Gateway = gateway ?? new HttpGateway(settings, proxy);
         Providers = CreateProviders(Gateway, Cache);
         foreach (var p in Providers) p.RegisterRateLimit();
-        Router = new FailoverRouter(Providers, Health, DefaultOrder);
+        Router = new FailoverRouter(Providers, Health, DefaultOrder)
+        {
+            QuoteSourceBudget = () => TimeSpan.FromSeconds(Gateway.Settings.RequestTimeoutSeconds * (Gateway.Settings.MaxRetries + 1)),
+        };
         Health.Attach(Gateway);
     }
 
