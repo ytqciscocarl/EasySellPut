@@ -48,7 +48,7 @@ public sealed class IvSource(
             .Select(c => new AtmCandidate(c.Right == CRight.Call ? Meili.Analytics.OptionRight.Call : Meili.Analytics.OptionRight.Put, c.Strike,
                 c.ImpliedVolatility, c.Bid, c.Ask, c.Last))
             .ToList();
-        if (AtmVolatility.Estimate(candidates, spot, exp, now, rate.Rate) is not { } est) return null;
+        if (AtmVolatility.Estimate(candidates, spot, exp, DataFreshness.SnapshotTime(chain, now), rate.Rate) is not { } est) return null;
         return new IvSample(symbol, est.Iv, IvBasis.AtmNearest30, chain.AsOf, chain.Source, exp, Meili.Analytics.OptionTime.DaysToExpiry(exp, now));
     }
 }

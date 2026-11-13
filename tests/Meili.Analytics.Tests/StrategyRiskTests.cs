@@ -4,6 +4,21 @@ namespace Meili.Analytics.Tests;
 
 public class StrategyRiskTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Mixed_expiries_do_not_report_a_defined_risk_margin(bool longExpiresFirst)
+    {
+        var first = new DateOnly(2026, 12, 18);
+        var second = new DateOnly(2027, 1, 15);
+        var strategy = new OptionStrategy([
+            StrategyLeg.Call(PositionSide.Long, 100, 3, longExpiresFirst ? first : second, 1, 0.3),
+            StrategyLeg.Call(PositionSide.Short, 100, 5, longExpiresFirst ? second : first, 1, 0.3)]);
+        var estimate = StrategyRisk.RegTMargin(strategy, 100);
+        Assert.True(double.IsNaN(estimate.Amount));
+        Assert.False(estimate.DefinedRisk);
+    }
+
     private static readonly DateOnly Exp = new(2027, 1, 15);
     private static readonly StrategyValuation Now = StrategyValuation.AtDate(new DateOnly(2026, 12, 16), 0.04, 0.01);
 

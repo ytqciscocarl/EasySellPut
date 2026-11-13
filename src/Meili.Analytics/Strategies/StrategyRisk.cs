@@ -1,6 +1,6 @@
 namespace Meili.Analytics;
 
-/// <summary>B7: Reg-T style initial margin estimate; <see cref="DefinedRisk"/> means it equals the bounded maximum loss.</summary>
+/// <summary>B7: Reg-T style initial margin estimate; NaN means unsupported. <see cref="DefinedRisk"/> means it equals the bounded maximum loss.</summary>
 public sealed record MarginEstimate(double Amount, bool DefinedRisk);
 
 /// <summary>B7: probability of profit and a rough margin figure for a strategy.</summary>
@@ -59,6 +59,7 @@ public static class StrategyRisk
     /// </summary>
     public static MarginEstimate RegTMargin(OptionStrategy strategy, double spot)
     {
+        if (strategy.HasMixedExpiries) return new MarginEstimate(double.NaN, false);
         bool hasStock = strategy.Legs.Any(l => !l.IsOption);
         bool shortsHedged = Hedged(strategy, LegType.Call) && Hedged(strategy, LegType.Put);
         if (!hasStock && shortsHedged)

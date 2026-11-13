@@ -90,6 +90,7 @@ public partial class StrategyViewModel : ObservableObject
     public PayoffCurve? Curve { get; private set; }
     public PayoffAnalysis? ExpiryAnalysis { get; private set; }
     public string HorizonLabel { get; private set; } = "";
+    public string ExpiryCurveLabel { get; private set; } = "";
     public event EventHandler? ChartChanged;
 
     public StrategyViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context,
@@ -289,7 +290,7 @@ public partial class StrategyViewModel : ObservableObject
             _hasChain = false;
             if (chain is not null)
             {
-                var settings = _inputs.Enrichment(DateTimeOffset.Now);
+                var settings = _inputs.Enrichment(DateTimeOffset.Now, chain);
                 var expDate = SelectedExpiration?.Date ?? chain.Expiration;
                 var list = new List<ListedQuote>();
                 foreach (var c in chain.Contracts)
@@ -493,7 +494,7 @@ public partial class StrategyViewModel : ObservableObject
 
         try
         {
-            var analysis = strategy!.AnalyzeAtExpiry();
+            var analysis = strategy!.HasMixedExpiries ? null : strategy.AnalyzeAtExpiry();
             ExpiryAnalysis = analysis;
             var spot = Spot ?? (strategy.Strikes.Count > 0 ? strategy.Strikes[strategy.Strikes.Count / 2] : 100);
             var (lo, hi) = strategy.SuggestPriceRange(spot);
@@ -507,15 +508,23 @@ public partial class StrategyViewModel : ObservableObject
                 if (strategy.EarliestExpiry is { } e && target >= e) overlay = null;
                 else overlay = StrategyValuation.AtDate(target, _inputs.Rate.Rate, _inputs.DividendYield) with { DefaultVolatility = DefaultVolatility };
             }
-            Curve = strategy.Curve(lo, hi, 251, overlay);
+            var curve = strategy.Curve(lo, hi, 251, overlay);
+            ExpiryCurveLabel = _loc[strategy.HasMixedExpiries ? "St_FirstExpiryCurve" : "St_ExpiryCurve"];
+            if (strategy.HasMixedExpiries)
+            {
+                var firstExpiry = nowVal with { ValuationTime = OptionTime.ExpiryInstant(strategy.EarliestExpiry!.Value) };
+                curve = curve with { ExpiryPnl = curve.Prices.Select(price => strategy.PnlAt(price, firstExpiry)).ToArray() };
+                LocalNote = _loc["St_MixedExpiryNote"];
+            }
+            Curve = curve;
             HasCurve = Curve.Prices.Length > 1;
             CostText = FormatCost(strategy.NetCost);
-            MaxProfitText = FormatBound(analysis.MaxProfit, analysis.MaxProfitPrice, unbounded: analysis.IsMaxProfitUnbounded);
-            MaxLossText = FormatBound(analysis.MaxLoss, analysis.MaxLossPrice, unbounded: analysis.IsMaxLossUnbounded);
-            BreakevenText = analysis.Breakevens.Count == 0
+            MaxProfitText = analysis is null ? "—" : FormatBound(analysis.MaxProfit, analysis.MaxProfitPrice, unbounded: analysis.IsMaxProfitUnbounded);
+            MaxLossText = analysis is null ? "—" : FormatBound(analysis.MaxLoss, analysis.MaxLossPrice, unbounded: analysis.IsMaxLossUnbounded);
+            BreakevenText = analysis is null || analysis.Breakevens.Count == 0
                 ? "—"
                 : string.Join("  ·  ", analysis.Breakevens.Select(b => NumberDisplay.Price(b)));
-            if (double.IsFinite(analysis.RewardToRisk))
+            if (analysis is not null && double.IsFinite(analysis.RewardToRisk))
                 RewardText = string.Format(_loc["St_RewardRisk"], analysis.RewardToRisk);
             if (Spot is { } s && overlay is { } val)
             {
@@ -528,10 +537,10 @@ public partial class StrategyViewModel : ObservableObject
                 : double.NaN;
             PopText = double.IsNaN(pop) ? "—" : (pop * 100).ToString("0.0", CultureInfo.InvariantCulture) + " %";
             var margin = StrategyRisk.RegTMargin(strategy, spot);
-            MarginText = margin.Amount.ToString("N0", Culture());
-            MarginTip = _loc[margin.DefinedRisk ? "St_MarginDefinedTip" : "St_MarginTip"];
+            MarginText = double.IsFinite(margin.Amount) ? margin.Amount.ToString("N0", Culture()) : "—";
+            MarginTip = _loc[!double.IsFinite(margin.Amount) ? "St_MixedExpiryNote" : margin.DefinedRisk ? "St_MarginDefinedTip" : "St_MarginTip"];
             if (usedDefaultIv && overlay is not null)
-                LocalNote = string.Format(_loc["St_UsedDefaultIv"], DefaultVolatility);
+                LocalNote = (LocalNote.Length > 0 ? LocalNote + " " : "") + string.Format(_loc["St_UsedDefaultIv"], DefaultVolatility);
             if (_lastError is null && _hasChain == false && Legs.Count > 0)
                 StatusText = _loc["St_NoChain"];
         }

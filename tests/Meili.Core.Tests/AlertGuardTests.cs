@@ -8,6 +8,30 @@ namespace Meili.Core.Tests;
 /// <summary>F3 (stale quotes never trigger) and F10 (interrupted monitoring is reported once).</summary>
 public class AlertGuardTests
 {
+    [Theory]
+    [InlineData(true, null)]
+    [InlineData(false, 0)]
+    [InlineData(false, 15)]
+    public void Declared_realtime_or_delay_does_not_override_an_old_market_timestamp(bool realtime, int? delay)
+    {
+        var quote = Q(rt: realtime, delay: delay, asOf: InSession.AddHours(-1)) with { FetchedAt = InSession };
+        Assert.Equal(AlertQuoteUse.TooStale, AlertQuoteGate.Check(quote, InSession, 20).Use);
+        Assert.Equal(StaleReason.SourceLagging, QuoteStaleness.Check(quote, InSession));
+    }
+
+    [Theory]
+    [InlineData(true, null)]
+    [InlineData(false, 15)]
+    public void Expected_declared_delay_and_closed_session_prices_are_not_marked_stale(bool realtime, int? delay)
+    {
+        var quote = Q(rt: realtime, delay: delay, asOf: InSession.AddMinutes(-15)) with { FetchedAt = InSession };
+        Assert.Equal(AlertQuoteUse.Usable, AlertQuoteGate.Check(quote, InSession, 20).Use);
+        Assert.Equal(StaleReason.None, QuoteStaleness.Check(quote, InSession));
+        var closed = quote with { AsOf = Weekend.AddDays(-1), FetchedAt = Weekend };
+        Assert.Equal(AlertQuoteUse.Usable, AlertQuoteGate.Check(closed, Weekend, 20).Use);
+        Assert.Equal(StaleReason.None, QuoteStaleness.Check(closed, Weekend));
+    }
+
     private static readonly DateTimeOffset InSession = MarketClock.FromEastern(new DateTime(2026, 11, 12, 11, 0, 0));
     private static readonly DateTimeOffset Weekend = MarketClock.FromEastern(new DateTime(2026, 11, 14, 11, 0, 0));
 

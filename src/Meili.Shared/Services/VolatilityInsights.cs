@@ -45,7 +45,7 @@ public sealed class VolatilityInsights(IIvSource iv, IMarketDataService data, Ri
                 .Select(c => new AtmCandidate(c.Right == CRight.Call ? Meili.Analytics.OptionRight.Call : Meili.Analytics.OptionRight.Put, c.Strike, c.ImpliedVolatility, c.Bid, c.Ask, c.Last))
                 .ToList();
             var s = chain.UnderlyingPrice is > 0 ? chain.UnderlyingPrice.Value : spot;
-            if (AtmVolatility.Estimate(candidates, s, exp, now, rate) is { } est)
+            if (AtmVolatility.Estimate(candidates, s, exp, DataFreshness.SnapshotTime(chain, now), rate) is { } est)
                 points.Add(new TermPoint(exp, OptionTime.DaysToExpiry(exp, now), est.Iv));
         }
         return points;

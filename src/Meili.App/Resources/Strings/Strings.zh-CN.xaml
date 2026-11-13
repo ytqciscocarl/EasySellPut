@@ -608,6 +608,8 @@
     <sys:String x:Key="St_Pop">盈利概率（到期）</sys:String>
     <sys:String x:Key="St_PopTip">按对数正态分布估算：以各期权腿 IV 加权平均为波动率、无风险利率减股息率为漂移，计算最早到期日收益为正的概率。仅为模型估算，不代表实际胜率。</sys:String>
     <sys:String x:Key="St_Margin">保证金（Reg-T 粗估）</sys:String>
+    <sys:String x:Key="St_FirstExpiryCurve">最早到期日理论盈亏</sys:String>
+    <sys:String x:Key="St_MixedExpiryNote">跨到期组合的曲线按最早到期日估值，远月腿保留时间价值；不提供全程最大盈亏、盈亏平衡点或保证金粗估，请以券商要求为准。</sys:String>
     <sys:String x:Key="St_MarginTip">按 Reg-T 初始保证金规则粗估：裸卖期权 20% 标的价减虚值额（不低于 10%）加权利金；股票 50%；有正股覆盖的卖出看涨不另计。券商通常有更高的内部要求。</sys:String>
     <sys:String x:Key="St_MarginDefinedTip">风险有限的期权组合：保证金等于最大亏损（借方组合即所付权利金，贷方价差即行权价差减所收权利金）。券商要求可能更高。</sys:String>
     <sys:String x:Key="St_SavedList">已保存</sys:String>

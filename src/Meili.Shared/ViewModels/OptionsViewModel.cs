@@ -292,7 +292,7 @@ public partial class OptionsViewModel : ObservableObject
 
             _inputs = await pricingTask;
             ModelText = PricingText.Model(_inputs.Rate, _loc);
-            var settings = _inputs.Enrichment(DateTimeOffset.Now);
+            var settings = _inputs.Enrichment(DateTimeOffset.Now, chain);
             var usedLocal = false;
             var prevOi = OpenInterestBefore(symbol, chain);
             var calls = new Dictionary<double, EnrichedSide>();

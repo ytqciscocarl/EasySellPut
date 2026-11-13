@@ -1,5 +1,6 @@
 using Meili.Analytics;
 using Meili.Core.Abstractions;
+using Meili.Core.Models;
 using Meili.Core.Pricing;
 
 namespace Meili.Shared.Services;
@@ -7,8 +8,8 @@ namespace Meili.Shared.Services;
 /// <summary>H1: the risk-free rate and dividend yield one symbol is priced with.</summary>
 public sealed record PricingInputs(RiskFreeRate Rate, double DividendYield)
 {
-    public OptionEnrichmentSettings Enrichment(DateTimeOffset now) =>
-        new() { RiskFreeRate = Rate.Rate, DividendYield = DividendYield, Now = now };
+    public OptionEnrichmentSettings Enrichment(DateTimeOffset now, OptionChain? chain = null) =>
+        new() { RiskFreeRate = Rate.Rate, DividendYield = DividendYield, Now = chain is null ? now : DataFreshness.SnapshotTime(chain, now) };
 }
 
 /// <summary>

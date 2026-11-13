@@ -608,6 +608,8 @@
     <sys:String x:Key="St_Pop">Probability of profit (expiry)</sys:String>
     <sys:String x:Key="St_PopTip">Lognormal estimate: volatility is the IV of the option legs weighted by size, drift is the risk-free rate minus the dividend yield; the chance the position shows a profit at the earliest expiry. A model figure, not an actual win rate.</sys:String>
     <sys:String x:Key="St_Margin">Margin (Reg-T estimate)</sys:String>
+    <sys:String x:Key="St_FirstExpiryCurve">Theoretical P/L at first expiry</sys:String>
+    <sys:String x:Key="St_MixedExpiryNote">Mixed-expiry curves are valued at the first expiry with time value remaining in later legs. Lifetime maximum P/L, breakevens and margin are not estimated; consult your broker.</sys:String>
     <sys:String x:Key="St_MarginTip">Rough Reg-T initial margin: naked short options 20% of the underlying less the out-of-the-money amount (at least 10%) plus premium; stock 50%; short calls covered by stock add nothing. Brokers usually require more.</sys:String>
     <sys:String x:Key="St_MarginDefinedTip">Defined-risk option position: margin equals the maximum loss (the debit paid, or spread width less the credit). Brokers may require more.</sys:String>
     <sys:String x:Key="St_SavedList">Saved</sys:String>

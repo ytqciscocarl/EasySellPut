@@ -19,6 +19,7 @@ public static class AlertQuoteGate
     {
         var f = DataFreshness.Evaluate(quote, now);
         var limit = TimeSpan.FromMinutes(maxDelayMinutes);
+        if (DataFreshness.MeasuredLag(quote, now) > limit) return (AlertQuoteUse.TooStale, f);
         var use = f.Kind switch
         {
             FreshnessKind.Realtime => AlertQuoteUse.Usable,

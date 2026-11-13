@@ -31,17 +31,26 @@ public sealed record Freshness(FreshnessKind Kind, TimeSpan? Lag, DateTimeOffset
 /// </summary>
 public static class DataFreshness
 {
+    public static DateTimeOffset SnapshotTime(SourcedData data, DateTimeOffset now)
+    {
+        var fetched = data.FetchedAt ?? now;
+        var snapshot = data.AsOf ?? (data.DelayMinutes is > 0 and var delay ? fetched.AddMinutes(-delay) : fetched);
+        return snapshot > now ? now : snapshot;
+    }
+
+    public static TimeSpan? MeasuredLag(SourcedData data, DateTimeOffset now)
+    {
+        if (data.AsOf is not { } asOf || MarketClock.GetSession(now) != MarketSession.Regular) return null;
+        return now > asOf ? now - asOf : TimeSpan.Zero;
+    }
+
     public static Freshness Evaluate(SourcedData data, DateTimeOffset now)
     {
         if (data.IsRealtime) return new Freshness(FreshnessKind.Realtime, TimeSpan.Zero, data.AsOf);
         if (data.DelayMinutes is > 0 and var d) return new Freshness(FreshnessKind.Delayed, TimeSpan.FromMinutes(d), data.AsOf);
         if (data.DelayMinutes == 0) return new Freshness(FreshnessKind.Realtime, TimeSpan.Zero, data.AsOf);
-        if (data.AsOf is { } asOf && MarketClock.GetSession(now) == MarketSession.Regular)
-        {
-            var lag = now - asOf;
-            if (lag < TimeSpan.Zero) lag = TimeSpan.Zero; // clock skew between us and the source
-            return new Freshness(FreshnessKind.Measured, lag, asOf);
-        }
+        if (MeasuredLag(data, now) is { } lag)
+            return new Freshness(FreshnessKind.Measured, lag, data.AsOf);
         return new Freshness(FreshnessKind.Unknown, null, data.AsOf);
     }
 }
@@ -56,9 +65,8 @@ public enum StaleReason
 }
 
 /// <summary>
-/// D8: when a displayed price should carry a "stale" marker. Builds on <see cref="DataFreshness"/>: a declared delay
-/// (e.g. 15 minutes) is expected and never "stale"; only a quote we failed to refresh, or a measured lag far beyond
-/// normal, is.
+/// D8: when a displayed price should carry a "stale" marker. A declared delay is expected, but does not override
+/// a market timestamp older than both that delay and the normal tolerance during the regular session.
 /// </summary>
 public static class QuoteStaleness
 {
@@ -75,8 +83,8 @@ public static class QuoteStaleness
     public static StaleReason Check(SourcedData data, DateTimeOffset now)
     {
         if (data.FetchedAt is { } fetched && now - fetched > MaxAge(now)) return StaleReason.NotUpdated;
-        var f = DataFreshness.Evaluate(data, now);
-        if (f.Kind == FreshnessKind.Measured && f.Lag > MaxMeasuredLag) return StaleReason.SourceLagging;
+        var allowedLag = TimeSpan.FromMinutes(Math.Max(MaxMeasuredLag.TotalMinutes, data.DelayMinutes ?? 0));
+        if (DataFreshness.MeasuredLag(data, now) > allowedLag) return StaleReason.SourceLagging;
         return StaleReason.None;
     }
 }

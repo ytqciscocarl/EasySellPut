@@ -82,7 +82,7 @@ public partial class StrategyPage : Page
         }
 
         var expiry = plot.Add.Scatter(curve.Prices, curve.ExpiryPnl);
-        expiry.LegendText = Find("St_ExpiryCurve");
+        expiry.LegendText = Vm.ExpiryCurveLabel;
         expiry.LineWidth = 2.2f;
         expiry.MarkerSize = 0;
         expiry.Color = c.Series1;
