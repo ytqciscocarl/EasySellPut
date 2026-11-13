@@ -132,54 +132,82 @@ public sealed class MarketDb
     {
         using var c = Open();
         using var tx = c.BeginTransaction();
-        using (var del = c.CreateCommand())
-        {
-            del.Transaction = tx;
-            del.CommandText = "DELETE FROM bars WHERE symbol=$s AND interval=$i AND adjust=$a";
-            del.Parameters.AddWithValue("$s", symbol);
-            del.Parameters.AddWithValue("$i", Key(interval));
-            del.Parameters.AddWithValue("$a", adjust);
-            del.ExecuteNonQuery();
-        }
-        using (var ins = c.CreateCommand())
-        {
-            ins.Transaction = tx;
-            ins.CommandText = "INSERT OR REPLACE INTO bars (symbol, interval, adjust, t, o, h, l, c, v, incomplete) VALUES ($s,$i,$a,$t,$o,$h,$l,$c,$v,$x)";
-            var ps = new[] { "$s", "$i", "$a", "$t", "$o", "$h", "$l", "$c", "$v", "$x" }.Select(n =>
-            {
-                var p = ins.CreateParameter();
-                p.ParameterName = n;
-                ins.Parameters.Add(p);
-                return p;
-            }).ToArray();
-            ps[0].Value = symbol; ps[1].Value = Key(interval); ps[2].Value = adjust;
-            foreach (var b in bars)
-            {
-                ps[3].Value = b.Time.ToUnixTimeSeconds();
-                ps[4].Value = Db(b.Open); ps[5].Value = Db(b.High); ps[6].Value = Db(b.Low);
-                ps[7].Value = b.Close; ps[8].Value = double.IsFinite(b.Volume) ? b.Volume : 0; ps[9].Value = b.Incomplete ? 1 : 0;
-                ins.ExecuteNonQuery();
-            }
-        }
-        using (var m = c.CreateCommand())
-        {
-            m.Transaction = tx;
-            m.CommandText = "INSERT OR REPLACE INTO bar_meta (symbol, interval, adjust, source, fetched_at, as_of, delay_minutes, realtime, covered_from, basis) VALUES ($s,$i,$a,$src,$f,$as,$d,$r,$cf,$b)";
-            m.Parameters.AddWithValue("$s", symbol);
-            m.Parameters.AddWithValue("$i", Key(interval));
-            m.Parameters.AddWithValue("$a", adjust);
-            m.Parameters.AddWithValue("$src", meta.Source);
-            m.Parameters.AddWithValue("$f", meta.FetchedAt.ToUnixTimeSeconds());
-            m.Parameters.AddWithValue("$as", meta.AsOf is { } a ? a.ToUnixTimeSeconds() : DBNull.Value);
-            m.Parameters.AddWithValue("$d", meta.DelayMinutes is { } d ? d : DBNull.Value);
-            m.Parameters.AddWithValue("$r", meta.IsRealtime ? 1 : 0);
-            m.Parameters.AddWithValue("$cf", meta.CoveredFrom is { } cf ? cf.ToUnixTimeSeconds() : DBNull.Value);
-            m.Parameters.AddWithValue("$b", meta.Basis.ToString());
-            m.ExecuteNonQuery();
-        }
+        DeleteRange(c, tx, symbol, interval, adjust, "");
+        InsertBars(c, tx, symbol, interval, adjust, bars);
+        UpsertMeta(c, tx, symbol, interval, adjust, meta);
         tx.Commit();
+    }
+
+    /// <summary>
+    /// Updates a cached series in place, in one transaction: deletes rows with <c>t &gt;= deleteFrom</c> (when given) and rows
+    /// with <c>t &lt; deleteBefore</c> (when given), inserts <paramref name="bars"/> (replacing equal times) and upserts the
+    /// metadata row. With no bars and no deletes only the metadata is refreshed.
+    /// </summary>
+    public void ReplaceTail(string symbol, BarInterval interval, string adjust, IReadOnlyList<Bar> bars,
+        DateTimeOffset? deleteFrom, DateTimeOffset? deleteBefore, BarCacheMeta meta)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        if (deleteFrom is { } from) DeleteRange(c, tx, symbol, interval, adjust, " AND t >= $t", from);
+        if (deleteBefore is { } before) DeleteRange(c, tx, symbol, interval, adjust, " AND t < $t", before);
+        InsertBars(c, tx, symbol, interval, adjust, bars);
+        UpsertMeta(c, tx, symbol, interval, adjust, meta);
+        tx.Commit();
+    }
+
+    private static void DeleteRange(SqliteConnection c, SqliteTransaction tx, string symbol, BarInterval interval, string adjust, string timeFilter, DateTimeOffset? t = null)
+    {
+        using var del = c.CreateCommand();
+        del.Transaction = tx;
+        del.CommandText = "DELETE FROM bars WHERE symbol=$s AND interval=$i AND adjust=$a" + timeFilter;
+        del.Parameters.AddWithValue("$s", symbol);
+        del.Parameters.AddWithValue("$i", Key(interval));
+        del.Parameters.AddWithValue("$a", adjust);
+        if (t is { } time) del.Parameters.AddWithValue("$t", time.ToUnixTimeSeconds());
+        del.ExecuteNonQuery();
+    }
+
+    private static void InsertBars(SqliteConnection c, SqliteTransaction tx, string symbol, BarInterval interval, string adjust, IReadOnlyList<Bar> bars)
+    {
+        if (bars.Count == 0) return;
+        using var ins = c.CreateCommand();
+        ins.Transaction = tx;
+        ins.CommandText = "INSERT OR REPLACE INTO bars (symbol, interval, adjust, t, o, h, l, c, v, incomplete) VALUES ($s,$i,$a,$t,$o,$h,$l,$c,$v,$x)";
+        var ps = new[] { "$s", "$i", "$a", "$t", "$o", "$h", "$l", "$c", "$v", "$x" }.Select(n =>
+        {
+            var p = ins.CreateParameter();
+            p.ParameterName = n;
+            ins.Parameters.Add(p);
+            return p;
+        }).ToArray();
+        ps[0].Value = symbol; ps[1].Value = Key(interval); ps[2].Value = adjust;
+        foreach (var b in bars)
+        {
+            ps[3].Value = b.Time.ToUnixTimeSeconds();
+            ps[4].Value = Db(b.Open); ps[5].Value = Db(b.High); ps[6].Value = Db(b.Low);
+            ps[7].Value = b.Close; ps[8].Value = double.IsFinite(b.Volume) ? b.Volume : 0; ps[9].Value = b.Incomplete ? 1 : 0;
+            ins.ExecuteNonQuery();
+        }
 
         static object Db(double v) => double.IsFinite(v) ? v : DBNull.Value;
+    }
+
+    private static void UpsertMeta(SqliteConnection c, SqliteTransaction tx, string symbol, BarInterval interval, string adjust, BarCacheMeta meta)
+    {
+        using var m = c.CreateCommand();
+        m.Transaction = tx;
+        m.CommandText = "INSERT OR REPLACE INTO bar_meta (symbol, interval, adjust, source, fetched_at, as_of, delay_minutes, realtime, covered_from, basis) VALUES ($s,$i,$a,$src,$f,$as,$d,$r,$cf,$b)";
+        m.Parameters.AddWithValue("$s", symbol);
+        m.Parameters.AddWithValue("$i", Key(interval));
+        m.Parameters.AddWithValue("$a", adjust);
+        m.Parameters.AddWithValue("$src", meta.Source);
+        m.Parameters.AddWithValue("$f", meta.FetchedAt.ToUnixTimeSeconds());
+        m.Parameters.AddWithValue("$as", meta.AsOf is { } a ? a.ToUnixTimeSeconds() : DBNull.Value);
+        m.Parameters.AddWithValue("$d", meta.DelayMinutes is { } d ? d : DBNull.Value);
+        m.Parameters.AddWithValue("$r", meta.IsRealtime ? 1 : 0);
+        m.Parameters.AddWithValue("$cf", meta.CoveredFrom is { } cf ? cf.ToUnixTimeSeconds() : DBNull.Value);
+        m.Parameters.AddWithValue("$b", meta.Basis.ToString());
+        m.ExecuteNonQuery();
     }
 
     // ---------------- IV samples (B1) ----------------

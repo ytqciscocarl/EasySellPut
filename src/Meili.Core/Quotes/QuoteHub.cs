@@ -85,7 +85,7 @@ public sealed class QuoteHub
     {
         var all = SubscribedSymbols;
         if (all.Count == 0) return null;
-        return await FetchAsync(all, ct);
+        return await FetchAsync(all).WaitAsync(ct);
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public sealed class QuoteHub
             // Piggyback: other subscribers' symbols that are stale too ride along in the same request.
             var extra = SubscribedSymbols.Where(s => !wanted.Contains(s, StringComparer.OrdinalIgnoreCase));
             lock (_gate) extra = extra.Where(s => !IsFresh(s, now)).ToList();
-            var batch = await FetchAsync(stale.Concat(extra).ToList(), ct);
+            var batch = await FetchAsync(stale.Concat(extra).ToList()).WaitAsync(ct);
             if (batch.Error is not null) throw batch.Error;
         }
         lock (_gate)
@@ -115,24 +115,27 @@ public sealed class QuoteHub
     private bool IsFresh(string symbol, DateTimeOffset now) =>
         _cache.TryGetValue(symbol, out var e) && now - e.At < Ttl;
 
-    private Task<QuoteBatch> FetchAsync(IReadOnlyList<string> symbols, CancellationToken ct)
+    /// <summary>
+    /// The shared fetch is detached from its callers: it is bounded only by <see cref="RequestTimeout"/>. Each caller
+    /// awaits it with <c>WaitAsync(ct)</c>, so one caller giving up cannot cancel the request the others are sharing.
+    /// </summary>
+    private Task<QuoteBatch> FetchAsync(IReadOnlyList<string> symbols)
     {
         lock (_gate)
         {
             if (_inflight is { } f && !f.Task.IsCompleted && symbols.All(f.Symbols.Contains))
                 return f.Task;
-            var task = RunAsync(symbols, ct);
+            var task = RunAsync(symbols);
             _inflight = (new HashSet<string>(symbols, StringComparer.OrdinalIgnoreCase), task);
             return task;
         }
     }
 
-    private async Task<QuoteBatch> RunAsync(IReadOnlyList<string> symbols, CancellationToken ct)
+    private async Task<QuoteBatch> RunAsync(IReadOnlyList<string> symbols)
     {
         RequestCount++;
         QuoteBatch batch;
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeout.CancelAfter(RequestTimeout);
+        using var timeout = new CancellationTokenSource(RequestTimeout);
         try
         {
             var quotes = await _data.GetQuotesAsync(symbols, timeout.Token);
@@ -145,9 +148,9 @@ public sealed class QuoteHub
             LastError = null;
             batch = new QuoteBatch(symbols, quotes, null, at);
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        catch (OperationCanceledException) when (!timeout.IsCancellationRequested)
         {
-            throw; // the caller gave up; not a source failure
+            throw; // cancelled by something other than our own timeout; not a source failure
         }
         catch (Exception ex)
         {

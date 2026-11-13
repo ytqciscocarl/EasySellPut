@@ -185,6 +185,264 @@ public sealed class BarCacheTests : IDisposable
         Assert.Single(bars);
         Assert.Equal(PriceAdjustment.Unknown, meta!.Basis);               // refreshed by the next fetch
     }
+
+    // ---- Brief C: SQLite work off the caller's context, and only changed rows are written ----
+
+    private static Bar B(int i, double? close = null)
+    {
+        var c = close ?? 100.5 + i;
+        return Bar.FromSource(D0.AddMinutes(i), 100 + i, Math.Max(101 + i, c), 99 + i, c, 1000);
+    }
+
+    private static List<Bar> Series(int from, int to) => Enumerable.Range(from, to - from).Select(i => B(i)).ToList();
+
+    private static readonly BarRequest Req = new("AAPL", BarInterval.Minute1);
+
+    /// <summary>Serves a scripted list of bars (honours <see cref="BarRequest.From"/> unless <see cref="Respond"/> is set).</summary>
+    private sealed class Scripted : IMarketDataService
+    {
+        public List<Bar> Bars { get; set; } = [];
+        public Func<BarRequest, IReadOnlyList<Bar>>? Respond { get; set; }
+        public DateTimeOffset FetchedAt { get; set; } = D0;
+        public bool Yield { get; set; }
+        /// <summary>True when any call arrived while a <see cref="SynchronizationContext"/> was current (i.e. on the caller's context).</summary>
+        public bool CalledOnContext { get; private set; }
+
+        public async Task<BarSeries> GetBarsAsync(BarRequest r, CancellationToken ct = default)
+        {
+            if (SynchronizationContext.Current is not null) CalledOnContext = true;
+            if (Yield) await Task.Yield();
+            var bars = Respond?.Invoke(r) ?? Bars.Where(b => r.From is null || b.Time >= r.From).ToList();
+            return new BarSeries { Symbol = r.Symbol, Interval = r.Interval, Bars = bars, Source = "yahoo", FetchedAt = FetchedAt, Adjustment = PriceAdjustment.Split };
+        }
+        public Task<IReadOnlyList<Quote>> GetQuotesAsync(IReadOnlyList<string> symbols, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<DateOnly>> GetExpirationsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<OptionChain> GetChainAsync(string symbol, DateOnly? expiration = null, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<Fundamentals> GetFundamentalsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<FinancialStatements> GetFinancialsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<NewsItem>> GetNewsAsync(string symbol, int count = 20, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<SymbolMatch>> SearchAsync(string query, int limit = 10, CancellationToken ct = default) => throw new NotSupportedException();
+    }
+
+    /// <summary>Stands in for the UI context: counts every continuation that is marshalled back to it.</summary>
+    private sealed class CountingContext : SynchronizationContext
+    {
+        private int _posts;
+        public int Posts => Volatile.Read(ref _posts);
+
+        public override void Post(SendOrPostCallback d, object? state)
+        {
+            Interlocked.Increment(ref _posts);
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                SetSynchronizationContext(this);
+                try { d(state); }
+                finally { SetSynchronizationContext(null); }
+            });
+        }
+
+        public override void Send(SendOrPostCallback d, object? state)
+        {
+            Interlocked.Increment(ref _posts);
+            d(state);
+        }
+    }
+
+    private (CachedMarketData Svc, Scripted Inner) MakeScripted()
+    {
+        var inner = new Scripted();
+        return (new CachedMarketData(inner, new MarketDb(Path.Combine(_dir, "market.db"))), inner);
+    }
+
+    private static IReadOnlyList<Bar> Rows(CachedMarketData svc) => svc.Db.LoadBars("AAPL", BarInterval.Minute1).Bars;
+
+    /// <summary>Starts the call with the counting context current (like a UI-thread caller), then awaits without capturing it.</summary>
+    private static async Task<(BarSeries Series, int Posts)> CallOnCountingContext(CachedMarketData svc)
+    {
+        var ctx = new CountingContext();
+        var previous = SynchronizationContext.Current;
+        Task<BarSeries> pending;
+        SynchronizationContext.SetSynchronizationContext(ctx);
+        try { pending = svc.GetBarsAsync(Req); }
+        finally { SynchronizationContext.SetSynchronizationContext(previous); }
+        var series = await pending.ConfigureAwait(false);
+        return (series, ctx.Posts);
+    }
+
+    [Fact]
+    public async Task Cache_work_never_touches_the_callers_context()
+    {
+        var (svc, inner) = MakeScripted();
+        inner.Yield = true;                                   // a network await in the middle, like the real source
+        inner.Bars = Series(0, 40);
+        var (first, firstPosts) = await CallOnCountingContext(svc);   // full load
+        Assert.Equal(40, first.Bars.Count);
+        Assert.Equal(0, firstPosts);
+
+        inner.Bars = Series(0, 41);
+        inner.FetchedAt = D0.AddHours(1);
+        var (second, secondPosts) = await CallOnCountingContext(svc); // tail refresh
+        Assert.Equal(41, second.Bars.Count);
+        Assert.Equal(0, secondPosts);
+        Assert.Equal((1, 1), (svc.FullFetches, svc.TailFetches));
+        Assert.False(inner.CalledOnContext);                  // the source is not called on the caller's context either
+    }
+
+    [Fact]
+    public async Task An_unchanged_refresh_writes_no_bar_rows_but_refreshes_the_metadata()
+    {
+        var (svc, inner) = MakeScripted();
+        inner.Bars = Series(0, 40);
+        await svc.GetBarsAsync(Req);
+        Assert.Equal(40, svc.BarRowsWritten);
+        Assert.Equal(D0, svc.Db.LoadBars("AAPL", BarInterval.Minute1).Meta!.FetchedAt);
+
+        inner.FetchedAt = D0.AddHours(2);
+        var again = await svc.GetBarsAsync(Req);
+        Assert.Equal(1, svc.TailFetches);
+        Assert.Equal(40, svc.BarRowsWritten);                 // nothing rewritten
+        var (rows, meta) = svc.Db.LoadBars("AAPL", BarInterval.Minute1);
+        Assert.Equal(D0.AddHours(2), meta!.FetchedAt);        // but the refresh time moved on
+        Assert.Equal(again.Bars, rows);
+        Assert.Equal(Series(0, 40), rows);
+    }
+
+    [Fact]
+    public async Task One_new_bar_writes_only_the_few_rows_that_changed()
+    {
+        var (svc, inner) = MakeScripted();
+        inner.Bars = Series(0, 40);
+        await svc.GetBarsAsync(Req);
+        var before = svc.BarRowsWritten;
+
+        inner.Bars = Series(0, 41);
+        inner.FetchedAt = D0.AddHours(1);
+        var s = await svc.GetBarsAsync(Req);
+        Assert.InRange(svc.BarRowsWritten - before, 1, CachedMarketData.OverlapBars + 1);
+        Assert.Equal(41, s.Bars.Count);
+        Assert.Equal(s.Bars, Rows(svc));
+        Assert.Equal(Series(0, 41), Rows(svc));
+    }
+
+    [Fact]
+    public async Task An_in_progress_last_bar_is_replaced_in_place()
+    {
+        var (svc, inner) = MakeScripted();
+        inner.Bars = Series(0, 40);
+        await svc.GetBarsAsync(Req);
+        var before = svc.BarRowsWritten;
+
+        var closed = Bar.FromSource(D0.AddMinutes(39), 139, 150, 130, 145, 2000);   // the last minute finished differently
+        inner.Bars = [.. Series(0, 39), closed];
+        inner.FetchedAt = D0.AddHours(1);
+        var s = await svc.GetBarsAsync(Req);
+        Assert.Equal(1, svc.BarRowsWritten - before);
+        Assert.Equal(closed, s.Bars[^1]);
+        Assert.Equal(40, s.Bars.Count);
+        Assert.Equal(s.Bars, Rows(svc));
+    }
+
+    [Fact]
+    public async Task A_bar_missing_from_the_tail_is_removed_from_the_store_too()
+    {
+        var (svc, inner) = MakeScripted();
+        inner.Bars = Series(0, 40);
+        await svc.GetBarsAsync(Req);
+
+        inner.Bars = Series(0, 40).Where(b => b.Time != D0.AddMinutes(36)).ToList();    // the source dropped bar 36
+        var s = await svc.GetBarsAsync(Req);
+        Assert.Equal(1, svc.TailFetches);
+        Assert.Equal(39, s.Bars.Count);
+        Assert.DoesNotContain(s.Bars, b => b.Time == D0.AddMinutes(36));
+        Assert.Equal(s.Bars, Rows(svc));                      // no stale row left behind
+    }
+
+    [Fact]
+    public async Task Growing_past_max_bars_trims_the_oldest_rows()
+    {
+        var (svc, inner) = MakeScripted();
+        inner.Bars = Series(0, CachedMarketData.MaxBars);
+        await svc.GetBarsAsync(Req);
+        Assert.Equal(CachedMarketData.MaxBars, svc.BarRowsWritten);
+
+        inner.Bars = Series(0, CachedMarketData.MaxBars + 3);
+        var s = await svc.GetBarsAsync(Req);
+        Assert.Equal(1, svc.TailFetches);
+        Assert.Equal(CachedMarketData.MaxBars, s.Bars.Count);
+        Assert.Equal(D0.AddMinutes(3), s.Bars[0].Time);
+        Assert.Equal(CachedMarketData.MaxBars + 3, svc.BarRowsWritten);   // only the 3 new bars were written
+        Assert.Equal(s.Bars, Rows(svc));
+    }
+
+    [Fact]
+    public async Task An_oversized_full_load_is_trimmed_by_the_next_unchanged_refresh()
+    {
+        var (svc, inner) = MakeScripted();
+        inner.Bars = Series(0, CachedMarketData.MaxBars + 3);             // full loads are stored untrimmed
+        await svc.GetBarsAsync(Req);
+        Assert.Equal(CachedMarketData.MaxBars + 3, Rows(svc).Count);
+
+        var s = await svc.GetBarsAsync(Req);
+        Assert.Equal(1, svc.TailFetches);
+        Assert.Equal(CachedMarketData.MaxBars, s.Bars.Count);
+        Assert.Equal(CachedMarketData.MaxBars + 3, svc.BarRowsWritten);   // trimming alone writes no bars
+        Assert.Equal(s.Bars, Rows(svc));
+    }
+
+    [Fact]
+    public async Task A_gap_forces_a_full_reload_and_the_store_matches()
+    {
+        var (svc, inner) = MakeScripted();
+        inner.Bars = Series(0, 40);
+        await svc.GetBarsAsync(Req);
+
+        inner.Respond = r => r.From is null ? Series(0, 70) : Series(60, 70);   // the tail starts after the last cached bar
+        var s = await svc.GetBarsAsync(Req);
+        Assert.Equal((2, 1), (svc.FullFetches, svc.TailFetches));
+        Assert.Equal(70, s.Bars.Count);
+        Assert.Equal(s.Bars, Rows(svc));
+    }
+
+    [Fact]
+    public async Task Stored_rows_equal_the_served_series_after_merges_and_full_reloads()
+    {
+        var (svc, inner) = Make();
+        var req = new BarRequest("AAPL", BarInterval.Day1);
+        async Task Check()
+        {
+            var s = await svc.GetBarsAsync(req);
+            Assert.Equal(s.Bars, svc.Db.LoadBars("AAPL", BarInterval.Day1).Bars);
+        }
+        await Check();                                         // first full load
+        inner.Days = 42; await Check();                        // tail merge
+        inner.Scale = 0.5; await Check();                      // re-adjusted history: full reload
+        inner.Basis = PriceAdjustment.SplitDividend; await Check();   // basis change: full reload
+        inner.Days = 43; await Check();                        // tail merge again on the reloaded series
+        Assert.Equal(3, svc.FullFetches);
+    }
+
+    [Fact]
+    public void ReplaceTail_deletes_a_range_inserts_and_updates_the_metadata_in_one_call()
+    {
+        var db = new MarketDb(Path.Combine(_dir, "rt2.db"));
+        var meta = new BarCacheMeta("yahoo", D0, D0, null, false);
+        db.SaveBars("AAPL", BarInterval.Minute1, Series(0, 10), meta);
+        db.SaveBars("MSFT", BarInterval.Minute1, Series(0, 10), meta);
+
+        var later = meta with { FetchedAt = D0.AddHours(1) };
+        db.ReplaceTail("AAPL", BarInterval.Minute1, "", [B(8, 150), B(9), B(10)], D0.AddMinutes(8), D0.AddMinutes(2), later);
+
+        var (rows, m) = db.LoadBars("AAPL", BarInterval.Minute1);
+        Assert.Equal([.. Enumerable.Range(2, 6).Select(i => B(i)), B(8, 150), B(9), B(10)], rows);   // 0,1 trimmed; 8 replaced; 10 new
+        Assert.Equal(D0.AddHours(1), m!.FetchedAt);
+        Assert.Equal(Series(0, 10), db.LoadBars("MSFT", BarInterval.Minute1).Bars);                   // other series untouched
+        Assert.Equal(D0, db.LoadBars("MSFT", BarInterval.Minute1).Meta!.FetchedAt);
+
+        db.ReplaceTail("AAPL", BarInterval.Minute1, "", [], null, null, meta with { FetchedAt = D0.AddHours(2) });
+        var (same, m2) = db.LoadBars("AAPL", BarInterval.Minute1);
+        Assert.Equal(rows, same);                              // no bars, no deletes: metadata only
+        Assert.Equal(D0.AddHours(2), m2!.FetchedAt);
+    }
 }
 
 /// <summary>B6: open interest per contract and day, compared with the previous stored day.</summary>

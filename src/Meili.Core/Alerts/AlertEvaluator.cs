@@ -13,8 +13,9 @@ public static class AlertEvaluator
     public const int DefaultCooldownMinutes = 15;
 
     /// <summary>
-    /// Last price used for price alerts. In pre-market or after-hours, the extended last is used
-    /// when <paramref name="includeExtended"/> is true and the quote actually has one; otherwise the regular last.
+    /// Last price used for price alerts. Whenever the market is not in its regular session, the extended last is used
+    /// when <paramref name="includeExtended"/> is true and the quote actually has one (it is the most recent trade, also
+    /// once the state turns <see cref="MarketState.Closed"/>); otherwise the regular last.
     /// If the regular last is missing, a positive extended last is used as a fallback when extended hours are included.
     /// </summary>
     public static double? EffectiveLastPrice(Quote quote, bool includeExtended, out bool usedExtended)
@@ -23,8 +24,8 @@ public static class AlertEvaluator
         if (quote is null) return null;
 
         var extOk = quote.ExtendedPrice is double ext && ext > 0;
-        var inExtendedSession = quote.MarketState is MarketState.PreMarket or MarketState.AfterHours;
-        if (includeExtended && inExtendedSession && extOk)
+        var outsideRegular = quote.MarketState != MarketState.Regular;
+        if (includeExtended && outsideRegular && extOk)
         {
             usedExtended = true;
             return quote.ExtendedPrice;
@@ -42,8 +43,8 @@ public static class AlertEvaluator
     {
         usedExtended = false;
         if (quote is null) return null;
-        var inExtendedSession = quote.MarketState is MarketState.PreMarket or MarketState.AfterHours;
-        if (includeExtended && inExtendedSession && quote.ExtendedChangePercent is double ext)
+        var outsideRegular = quote.MarketState != MarketState.Regular;
+        if (includeExtended && outsideRegular && quote.ExtendedChangePercent is double ext)
         {
             usedExtended = true;
             return ext;
@@ -66,6 +67,15 @@ public static class AlertEvaluator
             AlertKind.VolumeAbove => quote?.Volume,
             _ => null, // IV kinds are evaluated with EvaluateIv
         };
+
+        // Cross-source guard: after an extended-hours sample, a sample outside the regular session that only has the older
+        // regular close (session end on a source without extended data, or a failover) is not comparable. Skip it and
+        // keep the stored state, so it never looks like a cross. In the regular session evaluation is normal.
+        if (alert.Kind is AlertKind.PriceAbove or AlertKind.PriceBelow or AlertKind.PercentUp or AlertKind.PercentDown
+            && alert.IncludeExtendedHours && alert.HasSeenQuote && alert.LastSeenExtended
+            && !usedExtended && quote is not null && quote.MarketState != MarketState.Regular)
+            return new AlertEvalResult(AlertEvalStatus.InvalidQuote, false, value, usedExtended, next);
+
         return EvaluateValue(alert, next, value, usedExtended, now);
     }
 
@@ -98,7 +108,7 @@ public static class AlertEvaluator
             (alert.Kind.IsIv() && value <= 0))
             return new AlertEvalResult(AlertEvalStatus.InvalidQuote, false, value, usedExtended, next);
 
-        RecordSeen(next, alert.Kind, value.Value);
+        RecordSeen(next, alert.Kind, value.Value, usedExtended);
 
         if (!alert.HasSeenQuote)
         {
@@ -156,17 +166,19 @@ public static class AlertEvaluator
         _ => null,
     };
 
-    private static void RecordSeen(PriceAlert next, AlertKind kind, double value)
+    private static void RecordSeen(PriceAlert next, AlertKind kind, double value, bool usedExtended)
     {
         switch (kind)
         {
             case AlertKind.PriceAbove:
             case AlertKind.PriceBelow:
                 next.LastSeenPrice = value;
+                next.LastSeenExtended = usedExtended;
                 break;
             case AlertKind.PercentUp:
             case AlertKind.PercentDown:
                 next.LastSeenChangePercent = value;
+                next.LastSeenExtended = usedExtended;
                 break;
             case AlertKind.VolumeAbove:
                 next.LastSeenVolume = value;

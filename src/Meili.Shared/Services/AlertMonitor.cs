@@ -154,6 +154,7 @@ public sealed class AlertMonitor : IDisposable
                 || result.Next.LastSeenPrice != alert.LastSeenPrice
                 || result.Next.LastSeenChangePercent != alert.LastSeenChangePercent
                 || result.Next.LastSeenVolume != alert.LastSeenVolume
+                || result.Next.LastSeenExtended != alert.LastSeenExtended
                 || result.Next.Enabled != alert.Enabled
                 || result.Next.LastFiredAt != alert.LastFiredAt)
                 applied.Add((result.Next, history));

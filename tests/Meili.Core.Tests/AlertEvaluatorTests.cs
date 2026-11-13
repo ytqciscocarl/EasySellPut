@@ -22,7 +22,7 @@ public class AlertEvaluatorTests
 
     private static PriceAlert A(AlertKind kind, double threshold, bool seen = true, double? last = null,
         AlertRepeatMode repeat = AlertRepeatMode.Once, bool enabled = true, bool ext = true,
-        DateTimeOffset? fired = null, int cooldown = 15) => new()
+        DateTimeOffset? fired = null, int cooldown = 15, bool lastSeenExtended = false) => new()
     {
         Id = "t1",
         Symbol = "AAPL",
@@ -33,6 +33,7 @@ public class AlertEvaluatorTests
         CooldownMinutes = cooldown,
         IncludeExtendedHours = ext,
         HasSeenQuote = seen,
+        LastSeenExtended = lastSeenExtended,
         LastSeenPrice = kind is AlertKind.PriceAbove or AlertKind.PriceBelow ? last : null,
         LastSeenChangePercent = kind is AlertKind.PercentUp or AlertKind.PercentDown ? last : null,
         LastSeenVolume = kind is AlertKind.VolumeAbove ? last : null,
@@ -217,6 +218,136 @@ public class AlertEvaluatorTests
         var r = AlertEvaluator.Evaluate(A(AlertKind.VolumeAbove, 1_000_000, last: 900_000), Q(100, volume: 1_000_000), T0);
         Assert.True(r.Fired);
         Assert.Equal(1_000_000, r.Value);
+    }
+
+    [Fact]
+    public void SessionEnd_FlipBackToRegularClose_DoesNotFire()
+    {
+        var alert = A(AlertKind.PriceAbove, 98, seen: false);
+        var r1 = AlertEvaluator.Evaluate(alert, Q(100), T0);
+        Assert.Equal(AlertEvalStatus.WaitingForSample, r1.Status);
+        var r2 = AlertEvaluator.Evaluate(r1.Next, Q(100, MarketState.AfterHours, ext: 94), T0.AddMinutes(1));
+        Assert.False(r2.Fired);
+        Assert.True(r2.UsedExtended);
+        Assert.Equal(94, r2.Value);
+        var r3 = AlertEvaluator.Evaluate(r2.Next, Q(100, MarketState.AfterHours, ext: 94), T0.AddMinutes(2));
+        Assert.False(r3.Fired);
+        var r4 = AlertEvaluator.Evaluate(r3.Next, Q(100, MarketState.Closed, ext: 94), T0.AddMinutes(3));
+        Assert.False(r4.Fired);
+        Assert.True(r4.UsedExtended);
+        Assert.Equal(94, r4.Value);
+        Assert.Equal(94, r4.Next.LastSeenPrice);
+        Assert.True(r4.Next.Enabled);
+    }
+
+    [Fact]
+    public void Extended_ClosedStateWithExtendedPrice_UsesExtendedPrice()
+    {
+        var q = Q(100, MarketState.Closed, ext: 94);
+        var price = AlertEvaluator.EffectiveLastPrice(q, includeExtended: true, out var used);
+        Assert.True(used);
+        Assert.Equal(94, price);
+        Assert.Equal(100, AlertEvaluator.EffectiveLastPrice(q, includeExtended: false, out used));
+        Assert.False(used);
+    }
+
+    [Theory]
+    [InlineData(MarketState.PreMarket)]
+    [InlineData(MarketState.Closed)]
+    public void CrossSourceFlip_ExtendedToRegularOnly_IsInvalidAndKeepsState(MarketState state)
+    {
+        var alert = A(AlertKind.PriceAbove, 98, last: 94, lastSeenExtended: true);
+        var r = AlertEvaluator.Evaluate(alert, Q(100, state, ext: null), T0);
+        Assert.False(r.Fired);
+        Assert.Equal(AlertEvalStatus.InvalidQuote, r.Status);
+        Assert.Equal(94, r.Next.LastSeenPrice);
+        Assert.True(r.Next.LastSeenExtended);
+        Assert.True(r.Next.Enabled);
+    }
+
+    [Fact]
+    public void CrossSourceFlip_PercentKind_IsInvalidAndKeepsState()
+    {
+        var alert = A(AlertKind.PercentUp, 0.5, last: -6, lastSeenExtended: true);
+        var r = AlertEvaluator.Evaluate(alert, Q(100, MarketState.Closed, changePct: 1), T0);
+        Assert.False(r.Fired);
+        Assert.Equal(AlertEvalStatus.InvalidQuote, r.Status);
+        Assert.Equal(-6, r.Next.LastSeenChangePercent);
+    }
+
+    [Fact]
+    public void RealCrossAtTheOpen_StillFires_AfterExtendedSamples()
+    {
+        var alert = A(AlertKind.PriceAbove, 105.1, seen: false);
+        var r1 = AlertEvaluator.Evaluate(alert, Q(100, MarketState.PreMarket, ext: 105.0), T0);
+        Assert.False(r1.Fired);
+        Assert.True(r1.Next.LastSeenExtended);
+        var r2 = AlertEvaluator.Evaluate(r1.Next, Q(105.2, MarketState.Regular), T0.AddMinutes(1));
+        Assert.True(r2.Fired);
+        Assert.False(r2.UsedExtended);
+        Assert.Equal(105.2, r2.Value);
+        Assert.False(r2.Next.LastSeenExtended);
+    }
+
+    [Fact]
+    public void Percent_SessionEnd_FlipBackToRegularChange_DoesNotFire()
+    {
+        var alert = A(AlertKind.PercentUp, 0.5, seen: false);
+        var r1 = AlertEvaluator.Evaluate(alert, Q(100, MarketState.AfterHours, changePct: 1, extPct: -6), T0);
+        Assert.False(r1.Fired);
+        Assert.Equal(-6, r1.Next.LastSeenChangePercent);
+        var r2 = AlertEvaluator.Evaluate(r1.Next, Q(100, MarketState.Closed, changePct: 1, extPct: -6), T0.AddMinutes(1));
+        Assert.False(r2.Fired);
+        Assert.True(r2.UsedExtended);
+        Assert.Equal(-6, r2.Value);
+    }
+
+    [Fact]
+    public void ExtendedOptOut_RegularValuesOnly_OutsideRegularHours()
+    {
+        var q = Q(100, MarketState.Closed, ext: 94, changePct: 1, extPct: -6);
+        Assert.Equal(100, AlertEvaluator.EffectiveLastPrice(q, includeExtended: false, out var used));
+        Assert.False(used);
+        Assert.Equal(1, AlertEvaluator.EffectiveChangePercent(q, includeExtended: false, out used));
+        Assert.False(used);
+
+        // The cross-source guard never applies when extended hours are not included.
+        var alert = A(AlertKind.PriceAbove, 98, last: 94, ext: false, lastSeenExtended: true);
+        var r = AlertEvaluator.Evaluate(alert, q, T0);
+        Assert.True(r.Fired);
+        Assert.False(r.UsedExtended);
+    }
+
+    [Fact]
+    public void LastSeenExtended_IsCopiedByClone()
+    {
+        var alert = A(AlertKind.PriceAbove, 98, last: 94, lastSeenExtended: true);
+        Assert.True(alert.Clone().LastSeenExtended);
+    }
+
+    [Fact]
+    public void LastSeenExtended_LegacyFileLoadsAsFalse_AndNewValueRoundTrips()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "tyu-alerts-ext-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "alerts.json"), """
+                {"version":1,"alerts":[{"id":"old1","symbol":"AAPL","kind":"PriceAbove","threshold":98,"enabled":true,
+                "repeat":"Once","cooldownMinutes":15,"includeExtendedHours":true,"hasSeenQuote":true,"lastSeenPrice":94}],"history":[]}
+                """);
+            var store = new Meili.Core.Settings.AlertStore(dir);
+            var old = store.Load().Alerts.Single();
+            Assert.False(old.LastSeenExtended);
+            Assert.Equal(94, old.LastSeenPrice);
+
+            var next = old.Clone();
+            next.LastSeenExtended = true;
+            store.ApplyResults([(next, null)]);
+            store.Flush();
+            Assert.True(new Meili.Core.Settings.AlertStore(dir).Load().Alerts.Single().LastSeenExtended);
+        }
+        finally { try { Directory.Delete(dir, true); } catch (IOException) { } }
     }
 
     [Fact]

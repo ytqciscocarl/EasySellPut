@@ -102,19 +102,19 @@ public partial class AlertsViewModel : ObservableObject
         _monitor = monitor;
         _settings = settings;
         MaxDelayMinutes = settings.Current.Alerts.MaxQuoteDelayMinutes;
-        _monitor.HealthChanged += (_, _) => RefreshMonitorState();
+        _monitor.HealthChanged += (_, _) => Ui.Platform.Run(RefreshMonitorState);
         RebuildOptions();
         RebuildWatchSymbols();
         Reload();
         _watchlist.Changed += (_, _) => RebuildWatchSymbols();
-        _store.Changed += (_, _) =>
+        _store.Changed += (_, _) => Ui.Platform.Run(() =>
         {
             var keep = SelectedRow?.Id;
             Reload();
             RefreshIvNote();
             if (keep is not null)
                 SelectedRow = Rows.FirstOrDefault(r => r.Id == keep);
-        };
+        });
         _loc.LanguageChanged += (_, _) =>
         {
             var kind = SelectedKind?.Kind;

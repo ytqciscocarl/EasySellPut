@@ -22,15 +22,19 @@ public sealed class VolatilityInsights(IIvSource iv, IMarketDataService data, Ri
     /// <summary>Takes a fresh IV reading, records it, and ranks it against the same kind of reading over the past year.</summary>
     public async Task<(IvSample Sample, IvRankResult? Rank, int Days)?> RankAsync(string symbol, DateTimeOffset now, CancellationToken ct)
     {
-        if (await iv.GetAsync(symbol, now, ct) is not { } sample) return null;
-        db.AddIvSample(symbol, sample.AsOf ?? now, sample.Basis.ToString(), sample.Iv, sample.Source);
-        var kind = sample.Basis.ToString();
-        var history = db.LoadIvSamples(symbol, now.AddDays(-370))
-            .Where(s => s.Kind == kind)
-            .Select(s => (DateOnly.FromDateTime(MarketClock.ToEastern(s.T).Date), s.Iv));
-        var daily = IvRank.LastPerDay(history);
-        var today = DateOnly.FromDateTime(MarketClock.ToEastern(now).Date);
-        return (sample, IvRank.Compute(daily, today, sample.Iv), daily.Count(d => d.Day < today));
+        if (await iv.GetAsync(symbol, now, ct).ConfigureAwait(false) is not { } sample) return null;
+        // Two SQLite round trips and the ranking: keep them off the caller's (UI) context.
+        return await Task.Run(() =>
+        {
+            db.AddIvSample(symbol, sample.AsOf ?? now, sample.Basis.ToString(), sample.Iv, sample.Source);
+            var kind = sample.Basis.ToString();
+            var history = db.LoadIvSamples(symbol, now.AddDays(-370))
+                .Where(s => s.Kind == kind)
+                .Select(s => (DateOnly.FromDateTime(MarketClock.ToEastern(s.T).Date), s.Iv));
+            var daily = IvRank.LastPerDay(history);
+            var today = DateOnly.FromDateTime(MarketClock.ToEastern(now).Date);
+            return ((IvSample, IvRankResult?, int)?)(sample, IvRank.Compute(daily, today, sample.Iv), daily.Count(d => d.Day < today));
+        }, ct).ConfigureAwait(false);
     }
 
     /// <summary>ATM IV of the nearest <see cref="TermExpirations"/> expirations.</summary>
@@ -52,11 +56,12 @@ public sealed class VolatilityInsights(IIvSource iv, IMarketDataService data, Ri
     }
 
     /// <summary>Stores today's open interest and returns the previous stored day's, by contract symbol.</summary>
-    public IReadOnlyDictionary<string, double> SwapOpenInterest(string symbol, DateOnly day, IEnumerable<OptionContract> contracts)
-    {
-        var previous = db.LoadPreviousOpenInterest(symbol, day);
-        db.SaveOpenInterest(symbol, day, contracts.Where(c => c.OpenInterest is >= 0).Select(c => (c.ContractSymbol, c.OpenInterest!.Value)));
-        db.PruneOpenInterest(day.AddDays(-45));
-        return previous;
-    }
+    public Task<IReadOnlyDictionary<string, double>> SwapOpenInterestAsync(string symbol, DateOnly day, IEnumerable<OptionContract> contracts) =>
+        Task.Run(() =>
+        {
+            var previous = db.LoadPreviousOpenInterest(symbol, day);
+            db.SaveOpenInterest(symbol, day, contracts.Where(c => c.OpenInterest is >= 0).Select(c => (c.ContractSymbol, c.OpenInterest!.Value)));
+            db.PruneOpenInterest(day.AddDays(-45));
+            return previous;
+        });
 }

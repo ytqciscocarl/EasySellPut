@@ -27,6 +27,7 @@ public sealed class NetworkController : INetworkController
     {
         await _data.Gateway.ReconfigureAsync(_store.Current.Network).ConfigureAwait(true);
         _data.Health.Reset();
+        _data.Router.ForgetMisses();
         _data.Cache.Clear();
         Publish();
         return EffectiveDescription;

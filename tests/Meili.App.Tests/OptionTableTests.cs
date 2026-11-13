@@ -152,7 +152,7 @@ public class VolatilityInsightsTests
                 Assert.All(vm.TermPoints, p => Assert.Equal(0.25, p.Iv, 2));
 
                 // Today's OI was stored on this load; a load "tomorrow" compares with it.
-                var prev = AppServices.Get<VolatilityInsights>().SwapOpenInterest(sym, today.AddDays(1), []);
+                var prev = await AppServices.Get<VolatilityInsights>().SwapOpenInterestAsync(sym, today.AddDays(1), []);
                 Assert.Equal(1000, prev.Values.First());
                 var row = vm.Rows.First(r => r.Strike == 125);
                 Assert.Equal("—", row.Put!.OiChange);                                     // no earlier day for the put

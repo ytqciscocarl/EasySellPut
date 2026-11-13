@@ -294,7 +294,7 @@ public partial class OptionsViewModel : ObservableObject
             ModelText = PricingText.Model(_inputs.Rate, _loc);
             var settings = _inputs.Enrichment(DateTimeOffset.Now, chain);
             var usedLocal = false;
-            var prevOi = OpenInterestBefore(symbol, chain);
+            var prevOi = await OpenInterestBeforeAsync(symbol, chain);
             var calls = new Dictionary<double, EnrichedSide>();
             var puts = new Dictionary<double, EnrichedSide>();
             foreach (var c in chain.Contracts)

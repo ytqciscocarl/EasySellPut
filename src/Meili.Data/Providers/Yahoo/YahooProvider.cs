@@ -101,9 +101,10 @@ public sealed class YahooProvider : ProviderBase, IQuoteProvider, IBarsProvider,
                 _ => MarketState.Unknown,
             };
             double? extP = null, extC = null, extPct = null; DateTimeOffset? extT = null;
-            if (state == MarketState.PreMarket && q.Num("preMarketPrice") is { } pre)
+            // The pre-market price wins in PreMarket; with none yet (Yahoo PREPRE, overnight) the latest post-market trade is the most recent.
+            if (state == MarketState.PreMarket && q.Num("preMarketPrice") is > 0 and { } pre)
             { extP = pre; extC = q.Num("preMarketChange"); extPct = q.Num("preMarketChangePercent"); extT = q.UnixSeconds("preMarketTime"); }
-            else if (state is MarketState.AfterHours or MarketState.Closed && q.Num("postMarketPrice") is { } post)
+            else if (state != MarketState.Regular && q.Num("postMarketPrice") is > 0 and { } post)
             { extP = post; extC = q.Num("postMarketChange"); extPct = q.Num("postMarketChangePercent"); extT = q.UnixSeconds("postMarketTime"); }
 
             // F6: trust only what Yahoo states — the exchange delay field or a "Real Time" quote source.

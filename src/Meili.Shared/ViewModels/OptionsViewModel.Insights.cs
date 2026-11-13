@@ -27,10 +27,10 @@ public partial class OptionsViewModel
     public IReadOnlyList<TermPoint> TermPoints { get; private set; } = [];
 
     /// <summary>B6: stores today's open interest and returns the previous stored day's (empty when there is none).</summary>
-    private IReadOnlyDictionary<string, double> OpenInterestBefore(string symbol, OptionChain chain)
+    private async Task<IReadOnlyDictionary<string, double>> OpenInterestBeforeAsync(string symbol, OptionChain chain)
     {
         var day = DateOnly.FromDateTime(MarketClock.ToEastern(chain.AsOf ?? DateTimeOffset.Now).Date);
-        try { return _insights.SwapOpenInterest(symbol, day, chain.Contracts); }
+        try { return await _insights.SwapOpenInterestAsync(symbol, day, chain.Contracts); }
         catch (Microsoft.Data.Sqlite.SqliteException ex)
         {
             AppLog.Warn("options", "open interest history unavailable", ex);

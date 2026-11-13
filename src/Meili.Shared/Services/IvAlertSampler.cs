@@ -71,17 +71,26 @@ public sealed class IvAlertSampler : IDisposable
         if (key == _symbolsKey || _cts is null) return;
         _symbolsKey = key;
         var token = _cts.Token;
-        _ = Task.Run(() => SampleAsync(DateTimeOffset.Now, token));
+        // Alert state and AlertStore.Changed handlers (which rebuild UI collections) belong to the UI context; only the raw SQLite calls go to the pool.
+        Ui.Platform.Run(() => _ = SampleSafelyAsync(DateTimeOffset.Now, token));
+    }
+
+    /// <summary>Fire-and-forget safe: cancellation ends quietly, anything else is logged instead of going unobserved.</summary>
+    private async Task SampleSafelyAsync(DateTimeOffset now, CancellationToken ct)
+    {
+        try { await SampleAsync(now, ct); }
+        catch (OperationCanceledException) { } // expected: the sampler was stopped
+        catch (Exception ex) { AppLog.Warn("iv", "IV sampling failed: " + ex.Message); }
     }
 
     private async Task LoopAsync(CancellationToken ct)
     {
         try
         {
-            await SampleAsync(DateTimeOffset.Now, ct);
+            await SampleSafelyAsync(DateTimeOffset.Now, ct);
             using var timer = new PeriodicTimer(Interval);
             while (await timer.WaitForNextTickAsync(ct))
-                await SampleAsync(DateTimeOffset.Now, ct);
+                await SampleSafelyAsync(DateTimeOffset.Now, ct);
         }
         catch (OperationCanceledException) { }
     }
@@ -109,14 +118,16 @@ public sealed class IvAlertSampler : IDisposable
                     _latest[symbol] = sample;
                 }
                 samples[symbol] = sample;
-                try { _db.AddIvSample(symbol, sample.AsOf ?? now, sample.Basis.ToString(), sample.Iv, sample.Source); }
+                var s = sample;
+                try { await Task.Run(() => _db.AddIvSample(symbol, s.AsOf ?? now, s.Basis.ToString(), s.Iv, s.Source), ct); }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
                 catch (Exception ex) { AppLog.Warn("iv", "store IV sample failed: " + ex.Message); }
             }
             Apply(samples, now);
             if (now - _lastPrune > TimeSpan.FromDays(1))
             {
                 _lastPrune = now;
-                try { _db.PruneIvSamples(now - Retention); } catch (Exception ex) { AppLog.Warn("iv", "prune failed: " + ex.Message); }
+                try { await Task.Run(() => _db.PruneIvSamples(now - Retention)); } catch (Exception ex) { AppLog.Warn("iv", "prune failed: " + ex.Message); }
             }
             LastRun = now;
         }

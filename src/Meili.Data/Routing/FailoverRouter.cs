@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.Json;
 using Meili.Core.Abstractions;
 using Meili.Core.Models;
@@ -92,24 +93,93 @@ public sealed class FailoverRouter : IMarketDataService
         if (wanted.Count == 0) return [];
         var got = new Dictionary<string, Quote>(StringComparer.OrdinalIgnoreCase);
         var errors = new List<(string, string)>();
+        var asked = false;
         foreach (var p in Candidates<IQuoteProvider>(DataCapability.Quote))
         {
             var missing = wanted.Where(s => !got.ContainsKey(s)).ToList();
             if (missing.Count == 0) break;
+            var ask = missing.Where(s => !IsRememberedMiss(p.Id, s)).ToList();
+            if (ask.Count == 0) continue; // this source already said it has none of these: no request, no health record
+            asked = true;
             var sw = Stopwatch.StartNew();
+            using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var limit = QuoteSourceBudget();
+            budget.CancelAfter(limit);
             try
             {
-                var r = (await p.GetQuotesAsync(missing, ct).ConfigureAwait(false)).Where(q => q.Price > 0 && double.IsFinite(q.Price)).ToList();
+                // WaitAsync bounds a source that ignores its token; the abandoned call is left to finish on its own.
+                var all = await ObserveFault(p.GetQuotesAsync(ask, budget.Token)).WaitAsync(budget.Token).ConfigureAwait(false);
+                var r = all.Where(q => q.Price > 0 && double.IsFinite(q.Price)).ToList();
+                // An empty answer may be a hiccup (expired crumb, throttling), not "no such symbols": a miss counts only when this
+                // source, or an earlier one in this round, returned other symbols.
+                RecordAnswer(p.Id, ask, r, rememberMisses: r.Count > 0 || got.Count > 0);
                 if (r.Count == 0) { Fail(p.Id, "no quotes returned", hard: false, errors); continue; }
                 var fetched = Now();
                 foreach (var q in r) got.TryAdd(q.Symbol, q with { FetchedAt = q.FetchedAt ?? fetched });
                 Health.RecordSuccess(p.Id, sw.Elapsed);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+            catch (OperationCanceledException) when (budget.IsCancellationRequested)
+            {
+                Fail(p.Id, $"timed out after {limit.TotalSeconds.ToString("0.##", CultureInfo.InvariantCulture)} s", hard: true, errors);
+            }
             catch (Exception ex) { Fail(p.Id, Describe(ex), IsHard(ex), errors); }
         }
-        if (got.Count == 0) throw new AllSourcesFailedException(DataCapability.Quote, errors);
+        if (got.Count == 0)
+        {
+            if (!asked) errors.Add(("router", $"no source has: {string.Join(", ", wanted)}"));
+            throw new AllSourcesFailedException(DataCapability.Quote, errors);
+        }
         return wanted.Where(got.ContainsKey).Select(s => got[s]).ToList();
+    }
+
+    /// <summary>A call abandoned at the budget may fail later; read its exception so it never surfaces as unobserved.</summary>
+    private static Task<T> ObserveFault<T>(Task<T> task)
+    {
+        _ = task.ContinueWith(static t => { _ = t.Exception; }, CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        return task;
+    }
+
+    // ---------------- miss memory: a source that answered without a symbol is not asked for it again for a while ----------------
+
+    private static readonly TimeSpan MissRetryBase = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan MissRetryMax = TimeSpan.FromMinutes(30);
+    private readonly Dictionary<(string Source, string Symbol), (DateTimeOffset RetryAfter, int Misses)> _misses = [];
+    private readonly object _missGate = new();
+
+    /// <summary>
+    /// Longest a single source may take to answer one quote request before the chain moves on (quotes only). <see cref="DataServices"/>
+    /// derives it from the network settings (request timeout × (retries + 1)); the default matches the default settings.
+    /// </summary>
+    public Func<TimeSpan> QuoteSourceBudget { get; set; } = () => TimeSpan.FromSeconds(45);
+
+    /// <summary>Forget what the sources lacked (a proxy change invalidates it); every source is askable for every symbol again.</summary>
+    public void ForgetMisses()
+    {
+        lock (_missGate) _misses.Clear();
+    }
+
+    private bool IsRememberedMiss(string source, string symbol)
+    {
+        lock (_missGate) return _misses.TryGetValue((source.ToUpperInvariant(), symbol), out var m) && m.RetryAfter > Now();
+    }
+
+    /// <summary>A call that returned without throwing: symbols it gave are cleared; when <paramref name="rememberMisses"/>, symbols it lacked start (or lengthen) a miss.</summary>
+    private void RecordAnswer(string source, IReadOnlyList<string> asked, IReadOnlyList<Quote> answer, bool rememberMisses)
+    {
+        var have = answer.Select(q => q.Symbol).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var now = Now();
+        var key = source.ToUpperInvariant();
+        lock (_missGate)
+            foreach (var s in asked)
+            {
+                if (have.Contains(s)) { _misses.Remove((key, s)); continue; }
+                if (!rememberMisses) continue;
+                var misses = _misses.TryGetValue((key, s), out var m) ? m.Misses + 1 : 1;
+                var minutes = Math.Min(MissRetryMax.TotalMinutes, MissRetryBase.TotalMinutes * Math.Pow(2, Math.Min(misses - 1, 10)));
+                _misses[(key, s)] = (now + TimeSpan.FromMinutes(minutes), misses);
+            }
     }
 
     // ---------------- bars: aggregate locally when a source lacks the interval ----------------

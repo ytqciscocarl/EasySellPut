@@ -12,11 +12,13 @@ public class QuoteHubTests
         public List<IReadOnlyList<string>> Calls { get; } = [];
         public Exception? Fail { get; set; }
         public TaskCompletionSource? Gate { get; set; }
+        /// <summary>When set, waiting on <see cref="Gate"/> ends with the token like a real HTTP call would.</summary>
+        public bool HonorToken { get; set; }
 
         public async Task<IReadOnlyList<Quote>> GetQuotesAsync(IReadOnlyList<string> symbols, CancellationToken ct = default)
         {
             Calls.Add(symbols.ToList());
-            if (Gate is { } g) await g.Task;
+            if (Gate is { } g) await (HonorToken ? g.Task.WaitAsync(ct) : g.Task);
             if (Fail is { } f) throw f;
             return symbols.Select(s => new Quote { Symbol = s, Price = 100, Source = "x" }).ToList();
         }
@@ -116,6 +118,58 @@ public class QuoteHubTests
         Assert.Equal(0, hub.ConsecutiveFailures);
         Assert.NotNull(hub.LastSuccess);
         Assert.Null(hub.LastError);
+    }
+
+    [Fact]
+    public async Task One_caller_cancelling_does_not_cancel_the_shared_request_for_the_others()
+    {
+        var (hub, data, _, _) = Make();
+        data.HonorToken = true;
+        data.Gate = new TaskCompletionSource();
+        var updates = 0;
+        hub.Updated += (_, _) => updates++;
+        using var cts = new CancellationTokenSource();
+        var first = hub.GetQuotesAsync(["AAPL"], cts.Token);
+        var second = hub.GetQuotesAsync(["AAPL"]);
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first.WaitAsync(TimeSpan.FromSeconds(10)));
+        data.Gate.SetResult();
+        var quotes = await second.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal("AAPL", Assert.Single(quotes).Symbol);
+        Assert.Single(data.Calls);
+        Assert.Equal(1, updates);
+        Assert.Equal(0, hub.ConsecutiveFailures);
+        Assert.Null(hub.LastError);
+    }
+
+    [Fact]
+    public async Task A_poll_cancelled_by_its_caller_leaves_the_request_running_for_everyone_else()
+    {
+        var (hub, data, _, _) = Make();
+        data.HonorToken = true;
+        data.Gate = new TaskCompletionSource();
+        hub.Subscribe("alerts", ["AAPL"]);
+        using var cts = new CancellationTokenSource();
+        var poll = hub.PollAsync(cts.Token);
+        var read = hub.GetQuotesAsync(["AAPL"]);
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => poll.WaitAsync(TimeSpan.FromSeconds(10)));
+        data.Gate.SetResult();
+        Assert.Single(await read.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Single(data.Calls);
+        Assert.Equal(0, hub.ConsecutiveFailures);
+    }
+
+    [Fact]
+    public async Task The_shared_request_still_times_out_on_its_own_and_counts_as_a_failure()
+    {
+        var data = new Counting { HonorToken = true, Gate = new TaskCompletionSource() };
+        var hub = new QuoteHub(data) { RequestTimeout = TimeSpan.FromMilliseconds(50) };
+        var batchErrors = 0;
+        hub.Updated += (_, b) => { if (b.Error is not null) batchErrors++; };
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => hub.GetQuotesAsync(["AAPL"]).WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(1, hub.ConsecutiveFailures);
+        Assert.Equal(1, batchErrors);
     }
 
     [Fact]

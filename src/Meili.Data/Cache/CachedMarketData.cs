@@ -37,14 +37,22 @@ public sealed class CachedMarketData : IMarketDataService
     /// <summary>Counters for tests and diagnostics.</summary>
     public int FullFetches { get; private set; }
     public int TailFetches { get; private set; }
+    /// <summary>Bar rows inserted into the store (full saves and tail updates), for tests: unchanged refreshes must not grow it.</summary>
+    public int BarRowsWritten => Volatile.Read(ref _barRowsWritten);
+    private int _barRowsWritten;
 
     public async Task<BarSeries> GetBarsAsync(BarRequest request, CancellationToken ct = default)
     {
-        if (request.To is not null) return await _inner.GetBarsAsync(request, ct);
+        if (request.To is not null) return await _inner.GetBarsAsync(request, ct).ConfigureAwait(false);
         var symbol = request.Symbol.Trim().ToUpperInvariant();
         var gate = _locks.GetOrAdd($"{symbol}|{request.Interval}|{request.Adjust}", _ => new SemaphoreSlim(1, 1));
-        await gate.WaitAsync(ct);
-        try { return await GetCoreAsync(request with { Symbol = symbol }, ct); }
+        await gate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            // The store reads, the merge and the writes are synchronous SQLite work: keep them off the caller's (UI) context.
+            var core = request with { Symbol = symbol };
+            return await Task.Run(() => GetCoreAsync(core, ct), ct).ConfigureAwait(false);
+        }
         finally { gate.Release(); }
     }
 
@@ -55,19 +63,19 @@ public sealed class CachedMarketData : IMarketDataService
         catch (Exception ex)
         {
             AppLog.Warn("cache", $"read failed, bypassing: {ex.Message}");
-            return await _inner.GetBarsAsync(request, ct);
+            return await _inner.GetBarsAsync(request, ct).ConfigureAwait(false);
         }
 
         // The cache can serve this request only if it was filled from at least as far back as asked for.
         var usable = cached.Meta is { } meta && cached.Bars.Count > OverlapBars
             && (meta.CoveredFrom is null || (request.From is { } rf && rf >= meta.CoveredFrom));
-        if (!usable) return await FullAsync(request, cached, ct);
+        if (!usable) return await FullAsync(request, cached, ct).ConfigureAwait(false);
 
         BarSeries tail;
         try
         {
             TailFetches++;
-            tail = await _inner.GetBarsAsync(request with { From = BarMerge.TailStart(cached.Bars, OverlapBars) }, ct);
+            tail = await _inner.GetBarsAsync(request with { From = BarMerge.TailStart(cached.Bars, OverlapBars) }, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception ex)
@@ -77,16 +85,17 @@ public sealed class CachedMarketData : IMarketDataService
         }
 
         if (!string.Equals(tail.Source, cached.Meta!.Source, StringComparison.OrdinalIgnoreCase))
-            return await FullAsync(request, cached, ct, $"source changed {cached.Meta.Source}→{tail.Source}");
+            return await FullAsync(request, cached, ct, $"source changed {cached.Meta.Source}→{tail.Source}").ConfigureAwait(false);
         // F7: never splice bars of different adjustment bases (e.g. a pre-F7 cache, or a source that changed its basis).
         if (tail.Adjustment != cached.Meta.Basis)
-            return await FullAsync(request, cached, ct, $"adjustment changed {cached.Meta.Basis}→{tail.Adjustment}");
-        var (merged, outcome) = BarMerge.Merge(cached.Bars, tail.Bars);
+            return await FullAsync(request, cached, ct, $"adjustment changed {cached.Meta.Basis}→{tail.Adjustment}").ConfigureAwait(false);
+        var (full, outcome) = BarMerge.Merge(cached.Bars, tail.Bars);
         if (outcome is BarMergeOutcome.Diverged or BarMergeOutcome.Gap)
-            return await FullAsync(request, cached, ct, outcome.ToString());
+            return await FullAsync(request, cached, ct, outcome.ToString()).ConfigureAwait(false);
 
-        if (merged.Count > MaxBars) merged = merged.Skip(merged.Count - MaxBars).ToList();
-        Save(request, merged, tail, cached.Meta.CoveredFrom);
+        var trim = Math.Max(0, full.Count - MaxBars);
+        var merged = trim > 0 ? full.Skip(trim).ToList() : full;
+        SaveMerged(request, cached.Bars, full, trim, MetaOf(tail, cached.Meta.CoveredFrom));
         return Shape(request, tail, merged);
     }
 
@@ -97,24 +106,55 @@ public sealed class CachedMarketData : IMarketDataService
         try
         {
             FullFetches++;
-            full = await _inner.GetBarsAsync(request, ct);
+            full = await _inner.GetBarsAsync(request, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch when (cached.Meta is not null && cached.Bars.Count > 0)
         {
             return Offline(request, cached.Bars, cached.Meta);
         }
-        Save(request, full.Bars, full, request.From);
+        Save(request, full.Bars, MetaOf(full, request.From));
         return full;
     }
 
-    private void Save(BarRequest request, IReadOnlyList<Bar> bars, BarSeries from, DateTimeOffset? coveredFrom)
+    private BarCacheMeta MetaOf(BarSeries from, DateTimeOffset? coveredFrom) =>
+        new(from.Source ?? "", from.FetchedAt ?? Now(), from.AsOf, from.DelayMinutes, from.IsRealtime, coveredFrom, from.Adjustment);
+
+    /// <summary>Full reload: replaces the whole stored series.</summary>
+    private void Save(BarRequest request, IReadOnlyList<Bar> bars, BarCacheMeta meta)
     {
         try
         {
-            _db.SaveBars(request.Symbol, request.Interval, bars,
-                new BarCacheMeta(from.Source ?? "", from.FetchedAt ?? Now(), from.AsOf, from.DelayMinutes, from.IsRealtime, coveredFrom, from.Adjustment),
-                request.Adjust.CacheKey());
+            _db.SaveBars(request.Symbol, request.Interval, bars, meta, request.Adjust.CacheKey());
+            Interlocked.Add(ref _barRowsWritten, bars.Count);
+        }
+        catch (Exception ex) { AppLog.Warn("cache", $"write failed: {ex.Message}"); }
+    }
+
+    /// <summary>
+    /// Tail merge: writes only what differs from the stored series. <paramref name="full"/> is the merged series before the
+    /// <see cref="MaxBars"/> trim (<paramref name="trim"/> oldest bars are dropped); it equals <paramref name="cached"/> up to
+    /// the first changed bar, so everything before that stays untouched. With no change only the metadata is refreshed.
+    /// </summary>
+    private void SaveMerged(BarRequest request, IReadOnlyList<Bar> cached, IReadOnlyList<Bar> full, int trim, BarCacheMeta meta)
+    {
+        var i = 0;
+        while (i < full.Count && i < cached.Count && full[i] == cached[i]) i++;
+
+        // Rows from the first difference onward are deleted and rewritten. Take the earlier of the two times so a cached bar
+        // that the merged series dropped (a hole in the new tail) cannot survive.
+        DateTimeOffset? deleteFrom = null;
+        if (i < full.Count && i < cached.Count) deleteFrom = full[i].Time < cached[i].Time ? full[i].Time : cached[i].Time;
+        else if (i < full.Count) deleteFrom = full[i].Time;
+        else if (i < cached.Count) deleteFrom = cached[i].Time;
+
+        var start = Math.Max(i, trim);
+        IReadOnlyList<Bar> bars = start < full.Count ? full.Skip(start).ToList() : [];
+        DateTimeOffset? deleteBefore = trim > 0 ? full[trim].Time : null;
+        try
+        {
+            _db.ReplaceTail(request.Symbol, request.Interval, request.Adjust.CacheKey(), bars, deleteFrom, deleteBefore, meta);
+            Interlocked.Add(ref _barRowsWritten, bars.Count);
         }
         catch (Exception ex) { AppLog.Warn("cache", $"write failed: {ex.Message}"); }
     }

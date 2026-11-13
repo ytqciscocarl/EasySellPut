@@ -61,6 +61,12 @@ public sealed class PriceAlert
     public IvBasis? LastSeenIvBasis { get; set; }
     /// <summary>False until the first valid quote is recorded. The first sample never fires, so an already-crossed level does not notify immediately.</summary>
     public bool HasSeenQuote { get; set; }
+    /// <summary>
+    /// True when the last recorded price or percent sample came from the extended-hours fields. Lets the evaluator refuse a
+    /// sample that falls back to the older regular close outside regular hours (session end, or a failover to a source
+    /// without extended data), which would otherwise look like a cross.
+    /// </summary>
+    public bool LastSeenExtended { get; set; }
     public string Note { get; set; } = "";
 
     public static string NewId() => Guid.NewGuid().ToString("N")[..12];
@@ -83,6 +89,7 @@ public sealed class PriceAlert
         LastSeenIv = LastSeenIv,
         LastSeenIvBasis = LastSeenIvBasis,
         HasSeenQuote = HasSeenQuote,
+        LastSeenExtended = LastSeenExtended,
         Note = Note,
     };
 }

@@ -85,6 +85,119 @@ public class HttpLayerTests
         Assert.Equal(2, calls);
     }
 
+    [Fact]
+    public async Task Cache_shared_request_survives_the_first_caller_cancelling()
+    {
+        var cache = new ResponseCache();
+        var ttl = TimeSpan.FromMinutes(1);
+        var calls = 0;
+        var tokens = new List<CancellationToken>();
+        var gate = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        Task<string> Factory(CancellationToken t) { Interlocked.Increment(ref calls); tokens.Add(t); return gate.Task; }
+
+        using var cts = new CancellationTokenSource();
+        var first = cache.GetOrAddAsync("k", ttl, Factory, cts.Token);
+        var second = cache.GetOrAddAsync("k", ttl, Factory);
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first.WaitAsync(TimeSpan.FromSeconds(10)));
+
+        // the cancelled caller left the in-flight request alone: a third caller still joins it
+        var third = cache.GetOrAddAsync("k", ttl, Factory);
+        gate.SetResult("v");
+        Assert.Equal("v", await second.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal("v", await third.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(1, calls);
+        Assert.All(tokens, t => Assert.False(t.CanBeCanceled)); // the shared work never sees a caller's token
+
+        Assert.Equal("v", await cache.GetOrAddAsync("k", ttl, Factory)); // inside the TTL: served from cache
+        Assert.Equal(1, calls);
+    }
+
+    [Fact]
+    public async Task Cache_abandoned_request_that_fails_later_raises_no_unobserved_exception()
+    {
+        var marker = new InvalidOperationException("abandoned shared request failed");
+        var seen = new System.Collections.Concurrent.ConcurrentBag<Exception>();
+        void OnUnobserved(object? _, UnobservedTaskExceptionEventArgs e)
+        {
+            if (e.Exception.Flatten().InnerExceptions.Any(x => ReferenceEquals(x, marker))) seen.Add(e.Exception);
+        }
+        TaskScheduler.UnobservedTaskException += OnUnobserved;
+        try
+        {
+            await AbandonThenFailAsync(marker);
+            GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+            Assert.Empty(seen);
+        }
+        finally { TaskScheduler.UnobservedTaskException -= OnUnobserved; }
+    }
+
+    /// <summary>The only caller cancels, then the shared factory throws. Kept out of line so nothing here keeps the task alive.</summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static async Task AbandonThenFailAsync(Exception boom)
+    {
+        var cache = new ResponseCache();
+        var gate = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var failed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        async Task<string> Factory(CancellationToken _)
+        {
+            try { return await gate.Task; }
+            finally { failed.TrySetResult(); }
+        }
+        using var cts = new CancellationTokenSource();
+        var only = cache.GetOrAddAsync("k", TimeSpan.FromMinutes(1), Factory, cts.Token);
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => only.WaitAsync(TimeSpan.FromSeconds(10)));
+        gate.SetException(boom);
+        await failed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await Task.Delay(100); // let the shared task finish faulting
+    }
+
+    [Fact]
+    public async Task Cache_observing_the_shared_fault_still_delivers_it_to_callers_who_await()
+    {
+        var cache = new ResponseCache();
+        var gate = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        Task<string> Factory(CancellationToken _) => gate.Task;
+        using var cts = new CancellationTokenSource();
+        var cancelled = cache.GetOrAddAsync("k", TimeSpan.FromMinutes(1), Factory, cts.Token);
+        var waiting = cache.GetOrAddAsync("k", TimeSpan.FromMinutes(1), Factory);
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelled.WaitAsync(TimeSpan.FromSeconds(10)));
+        var boom = new InvalidOperationException("boom");
+        gate.SetException(boom);
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => waiting.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Same(boom, ex);
+    }
+
+    [Fact]
+    public async Task Cache_failed_request_is_not_cached_and_the_next_caller_retries()
+    {
+        var cache = new ResponseCache();
+        var calls = 0;
+        Task<string> Factory(CancellationToken _) =>
+            ++calls == 1 ? throw new InvalidOperationException("boom") : Task.FromResult("v");
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cache.GetOrAddAsync("k", TimeSpan.FromMinutes(1), Factory));
+        Assert.Equal("v", await cache.GetOrAddAsync("k", TimeSpan.FromMinutes(1), Factory));
+        Assert.Equal(2, calls);
+    }
+
+    [Fact]
+    public async Task Cache_failed_async_request_is_removed_from_flight_so_the_next_caller_retries()
+    {
+        var cache = new ResponseCache();
+        var calls = 0;
+        async Task<string> Factory(CancellationToken _)
+        {
+            await Task.Yield();
+            if (Interlocked.Increment(ref calls) == 1) throw new InvalidOperationException("boom");
+            return "v";
+        }
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cache.GetOrAddAsync("k", TimeSpan.FromMinutes(1), Factory));
+        Assert.Equal("v", await cache.GetOrAddAsync("k", TimeSpan.FromMinutes(1), Factory));
+        Assert.Equal(2, calls);
+    }
+
     [Theory]
     [InlineData("127.0.0.1:45444", "http://127.0.0.1:45444/")]
     [InlineData("http=127.0.0.1:7890;https=127.0.0.1:7891", "http://127.0.0.1:7891/")]

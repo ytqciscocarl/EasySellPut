@@ -24,6 +24,47 @@ public class YahooTests
         Assert.All(q, x => Assert.True(x.PreviousClose > 0 && x.AsOf is not null));
     }
 
+    private static IReadOnlyList<Quote> ParseInline(string json)
+    {
+        using var d = System.Text.Json.JsonDocument.Parse(json);
+        return YahooProvider.ParseQuotes(d.RootElement);
+    }
+
+    [Fact]
+    public void Overnight_PREPRE_without_premarket_price_takes_the_postmarket_fields()
+    {
+        var q = ParseInline("""
+            {"quoteResponse":{"result":[{"symbol":"AAPL","marketState":"PREPRE","regularMarketPrice":100,
+            "postMarketPrice":94,"postMarketChange":-6,"postMarketChangePercent":-6.0,"postMarketTime":1700000000}]}}
+            """);
+        var a = Assert.Single(q);
+        Assert.Equal(MarketState.PreMarket, a.MarketState);
+        Assert.Equal(94, a.ExtendedPrice);
+        Assert.Equal(-6, a.ExtendedChange);
+        Assert.Equal(-6.0, a.ExtendedChangePercent);
+        Assert.NotNull(a.ExtendedTime);
+    }
+
+    [Fact]
+    public void Premarket_price_wins_over_postmarket_in_PRE()
+    {
+        var q = ParseInline("""
+            {"quoteResponse":{"result":[{"symbol":"AAPL","marketState":"PRE","regularMarketPrice":100,
+            "preMarketPrice":101.5,"postMarketPrice":94}]}}
+            """);
+        Assert.Equal(101.5, Assert.Single(q).ExtendedPrice);
+    }
+
+    [Fact]
+    public void Regular_session_never_reports_an_extended_price()
+    {
+        var q = ParseInline("""
+            {"quoteResponse":{"result":[{"symbol":"AAPL","marketState":"REGULAR","regularMarketPrice":100,
+            "preMarketPrice":99,"postMarketPrice":94}]}}
+            """);
+        Assert.Null(Assert.Single(q).ExtendedPrice);
+    }
+
     [Fact]
     public void Parses_intraday_chart_including_extended_hours()
     {
