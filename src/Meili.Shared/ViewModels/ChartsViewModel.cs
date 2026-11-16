@@ -1,4 +1,5 @@
 using Meili.Core.Diagnostics;
+using Meili.Automation;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -20,12 +21,13 @@ public partial class ChartRangeTab : ObservableObject
 {
     public ChartRangeKind Kind { get; }
     public string Key { get; }
+    public string CompactTitle { get; }
     [ObservableProperty] public partial string Title { get; set; } = "";
     [ObservableProperty] public partial bool IsSelected { get; set; }
 
-    public ChartRangeTab(ChartRangeKind kind, string key, string title, bool selected)
+    public ChartRangeTab(ChartRangeKind kind, string key, string title, bool selected, string? compactTitle = null)
     {
-        Kind = kind; Key = key; Title = title; IsSelected = selected;
+        Kind = kind; Key = key; Title = title; CompactTitle = compactTitle ?? title; IsSelected = selected;
     }
 }
 
@@ -41,6 +43,9 @@ public partial class ChartsViewModel : ObservableObject
     private readonly IUiTimer _timer = Ui.Timer();
     private CancellationTokenSource? _cts;
     private bool _active;
+
+    // Desktop presentation only: never changes chart calculations or MCP permissions.
+    [ObservableProperty] public partial bool ShowInspector { get; set; }
 
     public ObservableCollection<string> WatchSymbols { get; } = [];
     public ObservableCollection<ChartRangeTab> Ranges { get; } = [];
@@ -82,6 +87,9 @@ public partial class ChartsViewModel : ObservableObject
     private IndicatorSettings _ind = new();
 
     // B5: user drawings (per symbol, saved) and one rebased comparison symbol.
+    public bool IsHorizontalDrawing => DrawMode == DrawingKind.HorizontalLine;
+    public bool IsTrendDrawing => DrawMode == DrawingKind.TrendLine;
+    [NotifyPropertyChangedFor(nameof(IsHorizontalDrawing), nameof(IsTrendDrawing))]
     [ObservableProperty] public partial DrawingKind? DrawMode { get; set; }
     [ObservableProperty] public partial IReadOnlyList<ChartDrawing> Drawings { get; set; } = [];
     [ObservableProperty] public partial string CompareText { get; set; } = "";
@@ -101,6 +109,46 @@ public partial class ChartsViewModel : ObservableObject
     /// <summary>F7: shown when the source cannot give what was asked, or a source switch changed the basis.</summary>
     [ObservableProperty] public partial string AdjustWarning { get; set; } = "";
 
+    public MarketTimeline? Timeline { get; private set; }
+    private CancellationTokenSource? _timelineCts;
+    private string? _timelineSymbol;
+    private DateTimeOffset _timelineRequested;
+    private async Task RefreshTimelineAsync(string symbol, bool callerWillRender = false)
+    {
+        var loading = LoadTimelineAsync(symbol);
+        var completedSynchronously = loading.IsCompleted;
+        if (await loading && (!callerWillRender || !completedSynchronously)) PlotChanged?.Invoke(this, EventArgs.Empty);
+    }
+    private async Task<bool> LoadTimelineAsync(string symbol)
+    {
+        if (_timelineSymbol == symbol && DateTimeOffset.UtcNow - _timelineRequested < TimeSpan.FromMinutes(5)) return false;
+        _timelineCts?.Cancel();
+        var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(35));
+        _timelineCts = cancellation; _timelineSymbol = symbol; _timelineRequested = DateTimeOffset.UtcNow;
+        if (Timeline?.Symbol != symbol) Timeline = null;
+        try
+        {
+            var result = await MarketTimelineService.LoadAsync(_data, symbol, limit: 100, ct: cancellation.Token);
+            if (cancellation.IsCancellationRequested || _timelineCts != cancellation || Series?.Symbol != symbol) return false;
+            Timeline = result;
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            if (_timelineCts != cancellation) return false;
+            _timelineSymbol = null;
+            if (Series?.Symbol != symbol) return false;
+            Timeline = new(symbol, [], new[] { "news", "earnings", "ex_dividend" }.Select(t => new EventCoverage(t, "unavailable", "provider_timeout")).ToArray(), "unavailable", DateTimeOffset.UtcNow, false, 0);
+            return true;
+        }
+        finally { cancellation.Dispose(); if (_timelineCts == cancellation) _timelineCts = null; }
+    }
+    public void OpenTimelineEvent(string id)
+    {
+        if (Timeline?.Symbol != Series?.Symbol || SymbolText != Series?.Symbol) return;
+        var item = Timeline?.Events.FirstOrDefault(e => e.Id == id && e.Type == "news");
+        if (item?.Url is { } url && NewsReaderPolicy.IsAllowed(url)) Ui.Platform.OpenNewsArticle(url, item.Title);
+    }
     public event EventHandler? PlotChanged;
 
     /// <summary>
@@ -149,6 +197,7 @@ public partial class ChartsViewModel : ObservableObject
         if (Series is null) await LoadAsync();
         else
         {
+            _ = RefreshTimelineAsync(Series.Symbol);
             ArmTimer();
             _timer.Start();
         }
@@ -163,9 +212,12 @@ public partial class ChartsViewModel : ObservableObject
 
     public void Deactivate()
     {
-        _active = false;
+        _active = false; DrawingEpoch++; DrawMode = null; _trendStart = null;
         _timer.Stop();
         _cts?.Cancel();
+        var timelineCancellation = _timelineCts;
+        _timelineCts = null; _timelineSymbol = null;
+        timelineCancellation?.Cancel();
     }
 
     public Task OpenSymbolAsync(string symbol)
@@ -188,7 +240,7 @@ public partial class ChartsViewModel : ObservableObject
         var keep = Range;
         Ranges.Clear();
         foreach (var (kind, key) in AllRanges())
-            Ranges.Add(new ChartRangeTab(kind, key, _loc[key], kind == keep));
+            Ranges.Add(new ChartRangeTab(kind, key, _loc[key], kind == keep, _loc[key+"_Short"]));
     }
 
     private static (ChartRangeKind kind, string key)[] AllRanges() =>
@@ -248,6 +300,7 @@ public partial class ChartsViewModel : ObservableObject
             if (!refreshOnly)
             {
                 StatusText = _loc["Ch_InvalidSymbol"];
+                _timelineCts?.Cancel(); Timeline = null; _timelineSymbol = null;
                 Series = null;
                 Snapshot = null;
                 PlotChanged?.Invoke(this, EventArgs.Empty);
@@ -266,13 +319,17 @@ public partial class ChartsViewModel : ObservableObject
             var request = BuildRequest(symbol, Range) with { Adjust = DividendAdjusted ? AdjustMode.Total : AdjustMode.Split };
             // C2: the cache layer turns a refresh into a short tail download; nothing new → no recompute, no redraw.
             var series = await _data.GetBarsAsync(request, _cts.Token);
+
             if (refreshOnly && Series is { } shown && SameData(shown, series))
             {
+                _ = RefreshTimelineAsync(symbol);
                 unchanged = true;
                 UnchangedRefreshes++;
                 return;
             }
             var bars = series.Bars.Select(b => new OhlcvBar(b.Time, b.Open, b.High, b.Low, b.Close, b.Volume)).ToArray();
+            if (!refreshOnly || Series is null || Series.Symbol != series.Symbol || Series.Interval != series.Interval || Series.Source != series.Source || Series.Adjustment != series.Adjustment)
+            { DrawingEpoch++; DrawMode = null; _trendStart = null; }
             Series = series;
             DescribeAdjustment(request, series);
             _bars = bars;
@@ -297,6 +354,7 @@ public partial class ChartsViewModel : ObservableObject
             if (!unchanged)
             {
                 PreserveView = refreshOnly;
+                if (Series?.Symbol == symbol) _ = RefreshTimelineAsync(symbol, callerWillRender: true);
                 PlotChanged?.Invoke(this, EventArgs.Empty);
                 PreserveView = true;
             }
@@ -314,6 +372,7 @@ public partial class ChartsViewModel : ObservableObject
     [RelayCommand]
     private void StartDrawing(DrawingKind kind)
     {
+        DrawingEpoch++;
         DrawMode = DrawMode == kind ? null : kind;
         _trendStart = null;
         StatusText = DrawMode switch
@@ -328,8 +387,9 @@ public partial class ChartsViewModel : ObservableObject
     private void ClearDrawings()
     {
         if (Series is null) return;
-        _drawings.Clear(Series.Symbol);
-        Drawings = [];
+        try { _drawings.Clear(Series.Symbol); }
+        catch (DataConflictException) { ReportDrawingConflict(); return; }
+        Drawings = []; DrawMode = null; _trendStart = null;
         PlotChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -341,18 +401,47 @@ public partial class ChartsViewModel : ObservableObject
         {
             _trendStart = (time, price);
             StatusText = _loc["Ch_DrawTrendHint2"];
+            PlotChanged?.Invoke(this, EventArgs.Empty);
             return true;
         }
+        if (mode == DrawingKind.TrendLine && _trendStart!.Value.Time == time) return false;
         var drawing = mode == DrawingKind.HorizontalLine
             ? new ChartDrawing(mode, price)
             : new ChartDrawing(mode, _trendStart!.Value.Price, _trendStart.Value.Time, price, time);
-        _drawings.Add(Series.Symbol, drawing);
+        try { _drawings.Add(Series.Symbol, drawing); }
+        catch (DataConflictException) { ReportDrawingConflict(); return false; }
         Drawings = _drawings.For(Series.Symbol).ToList();
         DrawMode = null;
         _trendStart = null;
         UpdateStatus();
         PlotChanged?.Invoke(this, EventArgs.Empty);
         return true;
+    }
+
+    public string ChartKey => $"{Series?.Symbol}|{Range}|{Series?.Source}|{Series?.Adjustment}";
+    public long DrawingEpoch { get; private set; }
+    public (DateTimeOffset Time, double Price)? DrawingStart => _trendStart;
+    public string DrawingRevision => Series is null ? "" : _drawings.Revision(Series.Symbol);
+    public void CancelDrawing()
+    {
+        DrawingEpoch++; DrawMode = null; _trendStart = null; UpdateStatus(); PlotChanged?.Invoke(this, EventArgs.Empty);
+    }
+    public void EditDrawing(int index, double? first, double? second, string revision)
+    {
+        if (Series is null || index < 0 || index >= Drawings.Count) return;
+        var original = Drawings[index];
+        try
+        {
+            _drawings.Edit(Series.Symbol, index, first is null ? null : original with { Price1 = first.Value, Price2 = second ?? original.Price2 }, revision);
+            Drawings = _drawings.For(Series.Symbol).ToList(); PlotChanged?.Invoke(this, EventArgs.Empty);
+        }
+        catch (DataConflictException) { ReportDrawingConflict(); PlotChanged?.Invoke(this, EventArgs.Empty); }
+    }
+    private void ReportDrawingConflict()
+    {
+        DrawMode = null; _trendStart = null;
+        _lastError = _loc["Ch_DrawingConflict"];
+        UpdateStatus();
     }
 
     [RelayCommand]

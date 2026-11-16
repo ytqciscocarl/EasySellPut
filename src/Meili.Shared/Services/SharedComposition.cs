@@ -30,6 +30,7 @@ public static class SharedComposition
         s.AddSingleton<IMarketDataService>(sp => new Meili.Data.Cache.CachedMarketData(
             sp.GetRequiredService<DataServices>().Router, sp.GetRequiredService<Meili.Data.Cache.MarketDb>()));
         s.AddSingleton(sp => new Meili.Core.Quotes.QuoteHub(sp.GetRequiredService<IMarketDataService>()));
+        s.AddSingleton<DesktopActivity>();
         s.AddSingleton<QuotePump>();
         s.AddSingleton<SymbolSearchService>();
         s.AddSingleton(sp => new Meili.Core.Pricing.RiskFreeRateProvider(sp.GetRequiredService<IMarketDataService>(),
@@ -41,8 +42,10 @@ public static class SharedComposition
         s.AddSingleton<IvAlertSampler>();
         s.AddSingleton<NetworkController>();
         s.AddSingleton<INetworkController>(sp => sp.GetRequiredService<NetworkController>());
+        s.AddSingleton<UpdateViewModel>();
         s.AddTransient<SettingsViewModel>();
         s.AddTransient<DashboardViewModel>();
+        s.AddTransient<QuotePanelViewModel>();
         s.AddSingleton<WatchlistViewModel>();
         s.AddSingleton<ChartsViewModel>();
         s.AddSingleton<OptionsViewModel>();
@@ -60,5 +63,6 @@ public static class SharedComposition
         sp.GetRequiredService<AlertMonitor>().Start();
         sp.GetRequiredService<IvAlertSampler>().Start();
         sp.GetRequiredService<QuotePump>().Start();
+        sp.GetRequiredService<UpdateViewModel>().StartNotifications();
     }
 }

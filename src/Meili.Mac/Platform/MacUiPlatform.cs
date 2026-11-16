@@ -1,3 +1,4 @@
+using Avalonia.Input.Platform;
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
@@ -32,6 +33,25 @@ public sealed class MacUiPlatform : IUiPlatform
         return await new ConfirmDialog(title, message).ShowDialog<bool>(owner);
     }
 
+    public void OpenNewsArticle(string url, string title)
+    {
+        if (!NewsReaderPolicy.IsAllowed(url)) throw new ArgumentException("Unsupported article URL", nameof(url));
+        Run(()=>{if(MainWindow is MainWindow window)window.OpenNewsArticle(url,title);});
+    }
+
+    public async Task CopyTextAsync(string text)
+    {
+        var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        var clipboard = window is null ? null : TopLevel.GetTopLevel(window)?.Clipboard;
+        if (clipboard is null) throw new NotSupportedException("Clipboard unavailable");
+        await clipboard.SetTextAsync(text);
+    }
+
+    public void ExitForUpdate()
+    {
+        if(Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)throw new NotSupportedException();
+        (desktop.MainWindow as MainWindow)?.AllowClose();desktop.Shutdown();
+    }
     public void OpenUrl(string url) => Open(url);
 
     public void OpenFolder(string path) => Open(path);

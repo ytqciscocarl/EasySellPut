@@ -23,9 +23,30 @@ public sealed class WpfUiPlatform : IUiPlatform
 
     public object? Resource(string key) => Application.Current?.TryFindResource(key);
 
-    public Task<bool> ConfirmAsync(string title, string message) =>
-        Task.FromResult(MessageBox.Show(message, title, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK);
+    public Task<bool> ConfirmAsync(string title,string message)
+    {
+        var loc=LocalizationService.Current;
+        var dialog=new Meili.App.Views.Controls.AppDialog{Title=title,Owner=Application.Current.MainWindow};
+        var ok=new System.Windows.Controls.Button{Content=loc["Mac_Ok"],IsDefault=true,MinWidth=88,Style=(Style)Application.Current.FindResource("PrimaryButton")};
+        var cancel=new System.Windows.Controls.Button{Content=loc["Mac_Cancel"],IsCancel=true,MinWidth=88,Margin=new Thickness(0,0,8,0)};
+        ok.Click+=(_,_)=>dialog.DialogResult=true;
+        var actions=new System.Windows.Controls.StackPanel{Orientation=System.Windows.Controls.Orientation.Horizontal,HorizontalAlignment=HorizontalAlignment.Right};actions.Children.Add(cancel);actions.Children.Add(ok);
+        var body=new System.Windows.Controls.StackPanel{Margin=new Thickness(24)};body.Children.Add(new System.Windows.Controls.TextBlock{Text=message,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,24)});body.Children.Add(actions);dialog.Content=body;
+        return Task.FromResult(dialog.ShowDialog()==true);
+    }
 
+    public void OpenNewsArticle(string url, string title)
+    {
+        if (!NewsReaderPolicy.IsAllowed(url)) throw new ArgumentException("Unsupported article URL", nameof(url));
+        Run(()=>{if(Application.Current?.MainWindow is MainWindow window)window.OpenNewsArticle(url,title);});
+    }
+
+    public Task CopyTextAsync(string text) { Clipboard.SetText(text); return Task.CompletedTask; }
+
+    public void ExitForUpdate()
+    {
+        if(Application.Current.MainWindow is MainWindow window)window.RequestExit();else Application.Current.Shutdown();
+    }
     public void OpenUrl(string url) => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 
     public void OpenFolder(string path) =>

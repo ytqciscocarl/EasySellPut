@@ -32,6 +32,7 @@ public partial class StrategyPage : UserControl
         _onChart = (_, _) => Dispatcher.UIThread.Post(RefreshAll);
         _onColors = (_, _) => Dispatcher.UIThread.Post(RenderChart);
         _onWhatIf = (_, _) => Dispatcher.UIThread.Post(MoveWhatIf);
+        SurfaceTabs.SelectionChanged += (_, _) => { if (_attached) RefreshAll(); };
         AttachedToVisualTree += async (_, _) =>
         {
             if (!_attached)
@@ -40,6 +41,7 @@ public partial class StrategyPage : UserControl
                 vm.WhatIfChanged += _onWhatIf;
                 Ui.Platform.ColorsChanged += _onColors;
                 _attached = true;
+                vm.PropertyChanged += OnVmPropertyChanged;
             }
             RefreshAll();
             await vm.ActivateAsync();
@@ -53,11 +55,17 @@ public partial class StrategyPage : UserControl
                 vm.WhatIfChanged -= _onWhatIf;
                 Ui.Platform.ColorsChanged -= _onColors;
                 _attached = false;
+                vm.PropertyChanged -= OnVmPropertyChanged;
+                Workspace.Stop();
             }
             vm.Deactivate();
         };
     }
 
+    public void ShowDetailedAnalysis() => DetailedTab.IsSelected = true;
+    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    { if (_attached && e.PropertyName is nameof(StrategyViewModel.IsBusy) or nameof(StrategyViewModel.StatusText) or nameof(StrategyViewModel.SymbolText)) UpdateWorkspace(); }
+    private void UpdateWorkspace() { if (Workspace.Session is not null) Workspace.Update(MacChartPalette.Current(_theme.IsDark)); }
     private StrategyViewModel Vm => (StrategyViewModel)DataContext!;
 
     private void OnChartClick(object? sender, PointerReleasedEventArgs e)
@@ -71,6 +79,14 @@ public partial class StrategyPage : UserControl
 
     private void RefreshAll()
     {
+        if (!_attached) return;
+        if (WorkbenchTab.IsSelected)
+        {
+            if (Workspace.Session is null) Workspace.Start(Vm, MacChartPalette.Current(_theme.IsDark));
+            else UpdateWorkspace();
+            return;
+        }
+        Workspace.Stop();
         foreach (var (b, days) in _horizons) b.Classes.Set("Selected", days == Vm.HorizonDays);
         int density = (int)Vm.TickDensity;
         foreach (var (b, d) in _ticks) b.Classes.Set("Selected", d == density);
@@ -80,6 +96,7 @@ public partial class StrategyPage : UserControl
 
     private void MoveWhatIf()
     {
+        UpdateWorkspace();
         if (_whatIfLine is not null && Vm.WhatIfPrice is { } px)
             _whatIfLine.X = px;
         SyncRuler();
@@ -98,6 +115,8 @@ public partial class StrategyPage : UserControl
 
     private void RenderChart()
     {
+        if (!_attached) return;
+        if (WorkbenchTab.IsSelected) { UpdateWorkspace(); return; }
         var loc = LocalizationService.Current;
         var plot = PayoffPlot.Plot;
         plot.Clear();

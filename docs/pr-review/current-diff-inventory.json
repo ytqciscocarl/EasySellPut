@@ -1,0 +1,2874 @@
+{
+  "base": "1227a79756ecd673279f888ae982692c6361f449",
+  "head": "045f680286c5a87fd566bc3d64873c5b25311380",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "oldPath": null,
+      "added": 11,
+      "deleted": 0
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 0
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "oldPath": null,
+      "added": 336,
+      "deleted": 0
+    },
+    {
+      "path": ".github/workflows/publish-release.yml",
+      "oldPath": null,
+      "added": 34,
+      "deleted": 0
+    },
+    {
+      "path": ".github/workflows/update-release.yml",
+      "oldPath": null,
+      "added": 232,
+      "deleted": 0
+    },
+    {
+      "path": "AGENTS.md",
+      "oldPath": null,
+      "added": 90,
+      "deleted": 0
+    },
+    {
+      "path": "Directory.Build.props",
+      "oldPath": null,
+      "added": 1,
+      "deleted": 1
+    },
+    {
+      "path": "Directory.Packages.props",
+      "oldPath": null,
+      "added": 3,
+      "deleted": 0
+    },
+    {
+      "path": "MeiliTerminal.slnx",
+      "oldPath": null,
+      "added": 6,
+      "deleted": 0
+    },
+    {
+      "path": "README.md",
+      "oldPath": null,
+      "added": 24,
+      "deleted": 2
+    },
+    {
+      "path": "build/ci-display.ps1",
+      "oldPath": null,
+      "added": 40,
+      "deleted": 0
+    },
+    {
+      "path": "build/ci-fonts.conf",
+      "oldPath": null,
+      "added": 14,
+      "deleted": 0
+    },
+    {
+      "path": "build/generate-design-system.py",
+      "oldPath": null,
+      "added": 62,
+      "deleted": 0
+    },
+    {
+      "path": "build/import-navigation-icons.py",
+      "oldPath": null,
+      "added": 79,
+      "deleted": 0
+    },
+    {
+      "path": "build/mac/bundle.py",
+      "oldPath": null,
+      "added": 3,
+      "deleted": 2
+    },
+    {
+      "path": "build/pack-cli.ps1",
+      "oldPath": null,
+      "added": 39,
+      "deleted": 0
+    },
+    {
+      "path": "build/pack-cli.sh",
+      "oldPath": null,
+      "added": 63,
+      "deleted": 0
+    },
+    {
+      "path": "build/pack-desktop.py",
+      "oldPath": null,
+      "added": 81,
+      "deleted": 0
+    },
+    {
+      "path": "build/prepare-update-release.py",
+      "oldPath": null,
+      "added": 40,
+      "deleted": 0
+    },
+    {
+      "path": "build/release/assemble.py",
+      "oldPath": null,
+      "added": 58,
+      "deleted": 0
+    },
+    {
+      "path": "build/release/check-workflows.py",
+      "oldPath": null,
+      "added": 53,
+      "deleted": 0
+    },
+    {
+      "path": "build/release/macos-entitlements.plist",
+      "oldPath": null,
+      "added": 6,
+      "deleted": 0
+    },
+    {
+      "path": "build/release/policy.py",
+      "oldPath": null,
+      "added": 102,
+      "deleted": 0
+    },
+    {
+      "path": "build/release/publish.py",
+      "oldPath": null,
+      "added": 78,
+      "deleted": 0
+    },
+    {
+      "path": "build/release/sign-packages.py",
+      "oldPath": null,
+      "added": 224,
+      "deleted": 0
+    },
+    {
+      "path": "build/setup-update-signing.py",
+      "oldPath": null,
+      "added": 42,
+      "deleted": 0
+    },
+    {
+      "path": "build/test-headless.sh",
+      "oldPath": null,
+      "added": 32,
+      "deleted": 0
+    },
+    {
+      "path": "build/ux-audit-inventory.py",
+      "oldPath": null,
+      "added": 30,
+      "deleted": 0
+    },
+    {
+      "path": "docs/07-CLI与MCP改造任务.md",
+      "oldPath": null,
+      "added": 43,
+      "deleted": 0
+    },
+    {
+      "path": "docs/08-CLI与MCP使用说明.md",
+      "oldPath": null,
+      "added": 168,
+      "deleted": 0
+    },
+    {
+      "path": "docs/09-CI与能力覆盖.md",
+      "oldPath": null,
+      "added": 74,
+      "deleted": 0
+    },
+    {
+      "path": "docs/10-CLI与MCP实测记录.md",
+      "oldPath": null,
+      "added": 53,
+      "deleted": 0
+    },
+    {
+      "path": "docs/11-真实行情上线验收.md",
+      "oldPath": null,
+      "added": 76,
+      "deleted": 0
+    },
+    {
+      "path": "docs/12-Windows与macOS的CLI和MCP.md",
+      "oldPath": null,
+      "added": 110,
+      "deleted": 0
+    },
+    {
+      "path": "docs/13-内置新闻阅读器.md",
+      "oldPath": null,
+      "added": 38,
+      "deleted": 0
+    },
+    {
+      "path": "docs/14-TradingView图表改造.md",
+      "oldPath": null,
+      "added": 55,
+      "deleted": 0
+    },
+    {
+      "path": "docs/15-期权链与策略联动工作台.md",
+      "oldPath": null,
+      "added": 60,
+      "deleted": 0
+    },
+    {
+      "path": "docs/16-K线事件时间线.md",
+      "oldPath": null,
+      "added": 57,
+      "deleted": 0
+    },
+    {
+      "path": "docs/17-MCP全功能覆盖审计.md",
+      "oldPath": null,
+      "added": 66,
+      "deleted": 0
+    },
+    {
+      "path": "docs/18-桌面自动打包与AI连接.md",
+      "oldPath": null,
+      "added": 35,
+      "deleted": 0
+    },
+    {
+      "path": "docs/19-Codex与ClaudeCode的Skill和MCP.md",
+      "oldPath": null,
+      "added": 69,
+      "deleted": 0
+    },
+    {
+      "path": "docs/20-图表工作区UIUX改版.md",
+      "oldPath": null,
+      "added": 28,
+      "deleted": 0
+    },
+    {
+      "path": "docs/21-图表事件标记与悬停提示.md",
+      "oldPath": null,
+      "added": 13,
+      "deleted": 0
+    },
+    {
+      "path": "docs/22-图表工作区渐进式信息呈现.md",
+      "oldPath": null,
+      "added": 13,
+      "deleted": 0
+    },
+    {
+      "path": "docs/23-单行工具栏与必要换行.md",
+      "oldPath": null,
+      "added": 8,
+      "deleted": 0
+    },
+    {
+      "path": "docs/24-macOS菜单栏股价.md",
+      "oldPath": null,
+      "added": 13,
+      "deleted": 0
+    },
+    {
+      "path": "docs/25-AI接入与MCP状态.md",
+      "oldPath": null,
+      "added": 14,
+      "deleted": 0
+    },
+    {
+      "path": "docs/26-新闻日期分组与历史导航.md",
+      "oldPath": null,
+      "added": 14,
+      "deleted": 0
+    },
+    {
+      "path": "docs/27-按钮图标居中检查.md",
+      "oldPath": null,
+      "added": 13,
+      "deleted": 0
+    },
+    {
+      "path": "docs/28-盘前盘后背景色.md",
+      "oldPath": null,
+      "added": 15,
+      "deleted": 0
+    },
+    {
+      "path": "docs/29-检查更新与安装.md",
+      "oldPath": null,
+      "added": 62,
+      "deleted": 0
+    },
+    {
+      "path": "docs/30-常驻市场侧栏.md",
+      "oldPath": null,
+      "added": 9,
+      "deleted": 0
+    },
+    {
+      "path": "docs/31-Discord工作区与网页标签.md",
+      "oldPath": null,
+      "added": 32,
+      "deleted": 0
+    },
+    {
+      "path": "docs/32-按钮规格与画线交互.md",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "docs/33-统一图标导航.md",
+      "oldPath": null,
+      "added": 28,
+      "deleted": 0
+    },
+    {
+      "path": "docs/34-Claude设计系统.md",
+      "oldPath": null,
+      "added": 42,
+      "deleted": 0
+    },
+    {
+      "path": "docs/35-全页面UX审计与验收.md",
+      "oldPath": null,
+      "added": 803,
+      "deleted": 0
+    },
+    {
+      "path": "docs/36-行情速览与跨平台托盘.md",
+      "oldPath": null,
+      "added": 49,
+      "deleted": 0
+    },
+    {
+      "path": "docs/37-后台运行性能与CI审查.md",
+      "oldPath": null,
+      "added": 44,
+      "deleted": 0
+    },
+    {
+      "path": "docs/38-新闻分屏阅读.md",
+      "oldPath": null,
+      "added": 15,
+      "deleted": 0
+    },
+    {
+      "path": "docs/39-聚合事件点击与左右分屏修复.md",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "docs/40-表单文字与控件对齐检查.md",
+      "oldPath": null,
+      "added": 33,
+      "deleted": 0
+    },
+    {
+      "path": "docs/41-上游同步与兼容性验收.md",
+      "oldPath": null,
+      "added": 41,
+      "deleted": 0
+    },
+    {
+      "path": "docs/42-本分支功能清单与上游PR草稿.md",
+      "oldPath": null,
+      "added": 54,
+      "deleted": 0
+    },
+    {
+      "path": "docs/43-沉浸式窗口标题栏.md",
+      "oldPath": null,
+      "added": 30,
+      "deleted": 0
+    },
+    {
+      "path": "docs/44-GitHubActions主分支发布流程.md",
+      "oldPath": null,
+      "added": 63,
+      "deleted": 0
+    },
+    {
+      "path": "docs/45-更新弹窗与状态栏提示.md",
+      "oldPath": null,
+      "added": 23,
+      "deleted": 0
+    },
+    {
+      "path": "docs/46-图表单行状态栏.md",
+      "oldPath": null,
+      "added": 9,
+      "deleted": 0
+    },
+    {
+      "path": "docs/mcp-config.example.json",
+      "oldPath": null,
+      "added": 8,
+      "deleted": 0
+    },
+    {
+      "path": "docs/mcp-config.macos.example.json",
+      "oldPath": null,
+      "added": 8,
+      "deleted": 0
+    },
+    {
+      "path": "docs/mcp-config.windows.example.json",
+      "oldPath": null,
+      "added": 11,
+      "deleted": 0
+    },
+    {
+      "path": "docs/pr-review/current-diff-inventory.json",
+      "oldPath": null,
+      "added": 2820,
+      "deleted": 0
+    },
+    {
+      "path": "docs/pr-review/diff-inventory.json",
+      "oldPath": null,
+      "added": 2593,
+      "deleted": 0
+    },
+    {
+      "path": "docs/pr-review/feature-commits.txt",
+      "oldPath": null,
+      "added": 80,
+      "deleted": 0
+    },
+    {
+      "path": "docs/pr-review/installers.json",
+      "oldPath": null,
+      "added": 30,
+      "deleted": 0
+    },
+    {
+      "path": "docs/pr-review/operation-catalog.json",
+      "oldPath": null,
+      "added": 1943,
+      "deleted": 0
+    },
+    {
+      "path": "docs/pr-review/screenshots.json",
+      "oldPath": null,
+      "added": 522,
+      "deleted": 0
+    },
+    {
+      "path": "docs/pr-review/screenshots/ai-session-status.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/ai-setup.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/alerts-advanced.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/background-restored.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/desktop-smoke-news-split-full-desktop.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/drawing-selected-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/drawing-selected-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/drawing-trend-preview-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/event-group-28-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/event-tooltip-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/event-tooltip-grouped-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/event-tooltip-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-components-en-US-False.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-components-select-en-US-False.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-components-select-zh-CN-True.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-components-zh-CN-True.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-update-notification-dialog-en-US-True.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-update-notification-dialog-zh-CN-False.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-update-notification-footer-en-US-True.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-update-notification-footer-zh-CN-False.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/news-history-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/news-history-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/news-history-navigated-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/options-columns.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-alerts-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-alerts-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-charts-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-charts-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-dashboard-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-dashboard-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-datasources-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-datasources-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-news-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-news-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-options-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-options-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-settings-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-settings-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-strategy-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-strategy-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-watchlist-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/page-watchlist-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/sessions-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/sessions-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/timeline-default-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/timeline-selected-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/update-available.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/update-ready.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/update-rejected.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/watchlist-group-draft.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/workbench-dark.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/workbench-light.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/ux/audit-plan.json",
+      "oldPath": null,
+      "added": 660,
+      "deleted": 0
+    },
+    {
+      "path": "docs/ux/components-after.json",
+      "oldPath": null,
+      "added": 37510,
+      "deleted": 0
+    },
+    {
+      "path": "docs/ux/components-before.json",
+      "oldPath": null,
+      "added": 37549,
+      "deleted": 0
+    },
+    {
+      "path": "skills/easysellput-local/SKILL.md",
+      "oldPath": null,
+      "added": 124,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/App.xaml.cs",
+      "oldPath": null,
+      "added": 5,
+      "deleted": 3
+    },
+    {
+      "path": "src/Meili.App/DesignSystem/Components.xaml",
+      "oldPath": null,
+      "added": 60,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/DesignSystem/Tokens.xaml",
+      "oldPath": null,
+      "added": 34,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/MainWindow.Background.cs",
+      "oldPath": null,
+      "added": 32,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/MainWindow.News.cs",
+      "oldPath": null,
+      "added": 45,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/MainWindow.Updates.cs",
+      "oldPath": null,
+      "added": 32,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/MainWindow.Workspace.cs",
+      "oldPath": null,
+      "added": 180,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/MainWindow.xaml",
+      "oldPath": null,
+      "added": 57,
+      "deleted": 37
+    },
+    {
+      "path": "src/Meili.App/MainWindow.xaml.cs",
+      "oldPath": null,
+      "added": 14,
+      "deleted": 5
+    },
+    {
+      "path": "src/Meili.App/Meili.App.csproj",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Resources/Strings/Strings.en-US.xaml",
+      "oldPath": null,
+      "added": 205,
+      "deleted": 5
+    },
+    {
+      "path": "src/Meili.App/Resources/Strings/Strings.zh-CN.xaml",
+      "oldPath": null,
+      "added": 204,
+      "deleted": 4
+    },
+    {
+      "path": "src/Meili.App/Resources/Styles.xaml",
+      "oldPath": null,
+      "added": 28,
+      "deleted": 10
+    },
+    {
+      "path": "src/Meili.App/Services/Converters.cs",
+      "oldPath": null,
+      "added": 5,
+      "deleted": 5
+    },
+    {
+      "path": "src/Meili.App/Services/CornerRadiusAnimation.cs",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Services/NewsReaderWindow.cs",
+      "oldPath": null,
+      "added": 133,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Services/NotificationService.cs",
+      "oldPath": null,
+      "added": 29,
+      "deleted": 6
+    },
+    {
+      "path": "src/Meili.App/Services/SmokeRunner.cs",
+      "oldPath": null,
+      "added": 71,
+      "deleted": 2
+    },
+    {
+      "path": "src/Meili.App/Services/ThemeService.cs",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 1
+    },
+    {
+      "path": "src/Meili.App/Services/WebTabPane.cs",
+      "oldPath": null,
+      "added": 114,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Services/WpfUiPlatform.cs",
+      "oldPath": null,
+      "added": 23,
+      "deleted": 2
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/AppCard.cs",
+      "oldPath": null,
+      "added": 13,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/AppDialog.cs",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/AppDisclosure.cs",
+      "oldPath": null,
+      "added": 14,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/AppDrawer.cs",
+      "oldPath": null,
+      "added": 21,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/AppFormHeader.cs",
+      "oldPath": null,
+      "added": 30,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/AppHelp.cs",
+      "oldPath": null,
+      "added": 22,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/AppLoading.cs",
+      "oldPath": null,
+      "added": 22,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/AppPopover.cs",
+      "oldPath": null,
+      "added": 39,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/AppSelect.cs",
+      "oldPath": null,
+      "added": 10,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/ArticleSplitView.cs",
+      "oldPath": null,
+      "added": 42,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/ComponentMotion.cs",
+      "oldPath": null,
+      "added": 52,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/LucideIcon.cs",
+      "oldPath": null,
+      "added": 35,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/QuoteSparkline.cs",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/SymbolBox.cs",
+      "oldPath": null,
+      "added": 4,
+      "deleted": 3
+    },
+    {
+      "path": "src/Meili.App/Views/Controls/WebChartControl.cs",
+      "oldPath": null,
+      "added": 99,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/AlertsPage.xaml",
+      "oldPath": null,
+      "added": 27,
+      "deleted": 34
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/ChartsPage.xaml",
+      "oldPath": null,
+      "added": 137,
+      "deleted": 183
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/ChartsPage.xaml.cs",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 131
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/DashboardPage.xaml",
+      "oldPath": null,
+      "added": 14,
+      "deleted": 55
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/DataSourcesPage.xaml",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 17
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/NewsPage.xaml",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 33
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/OptionsPage.xaml",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 40
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/SettingsPage.xaml",
+      "oldPath": null,
+      "added": 149,
+      "deleted": 86
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/StrategyPage.xaml",
+      "oldPath": null,
+      "added": 26,
+      "deleted": 43
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/StrategyPage.xaml.cs",
+      "oldPath": null,
+      "added": 29,
+      "deleted": 16
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/WatchlistPage.xaml",
+      "oldPath": null,
+      "added": 28,
+      "deleted": 52
+    },
+    {
+      "path": "src/Meili.App/Views/Pages/WatchlistPage.xaml.cs",
+      "oldPath": null,
+      "added": 19,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/QuotePanelWindow.cs",
+      "oldPath": null,
+      "added": 91,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/UpdateDialog.xaml",
+      "oldPath": null,
+      "added": 25,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.App/Views/UpdateDialog.xaml.cs",
+      "oldPath": null,
+      "added": 7,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/AiClientLocator.cs",
+      "oldPath": null,
+      "added": 27,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/AiSkillInstaller.cs",
+      "oldPath": null,
+      "added": 79,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/AiWorkflowGuide.cs",
+      "oldPath": null,
+      "added": 28,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/AutomationService.Coverage.cs",
+      "oldPath": null,
+      "added": 185,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/AutomationService.cs",
+      "oldPath": null,
+      "added": 254,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/IvSource.cs",
+      "oldPath": "src/Meili.Shared/Services/IvSource.cs",
+      "added": 0,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/LocalPaths.cs",
+      "oldPath": null,
+      "added": 21,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/MarketTimelineService.cs",
+      "oldPath": null,
+      "added": 76,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/McpConnectionSetup.cs",
+      "oldPath": null,
+      "added": 50,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/McpSessions.cs",
+      "oldPath": null,
+      "added": 94,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/Meili.Application.csproj",
+      "oldPath": null,
+      "added": 11,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/OperationCatalog.Coverage.cs",
+      "oldPath": null,
+      "added": 55,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/OperationCatalog.cs",
+      "oldPath": null,
+      "added": 137,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/OptionEntryReference.cs",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/OptionQuoteMetrics.cs",
+      "oldPath": null,
+      "added": 11,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/PricingAssumptions.cs",
+      "oldPath": "src/Meili.Shared/Services/PricingAssumptions.cs",
+      "added": 4,
+      "deleted": 2
+    },
+    {
+      "path": "src/Meili.Application/SafeData.cs",
+      "oldPath": "src/Meili.Shared/Services/SafeData.cs",
+      "added": 7,
+      "deleted": 6
+    },
+    {
+      "path": "src/Meili.Application/StrategyStore.cs",
+      "oldPath": "src/Meili.Shared/Services/StrategyStore.cs",
+      "added": 5,
+      "deleted": 4
+    },
+    {
+      "path": "src/Meili.Application/Updates/UpdateClient.cs",
+      "oldPath": null,
+      "added": 130,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/Updates/UpdateInstaller.cs",
+      "oldPath": null,
+      "added": 241,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/Updates/update-public-key.pem",
+      "oldPath": null,
+      "added": 5,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Application/VolatilityInsights.cs",
+      "oldPath": "src/Meili.Shared/Services/VolatilityInsights.cs",
+      "added": 8,
+      "deleted": 2
+    },
+    {
+      "path": "src/Meili.Application/WireJson.cs",
+      "oldPath": null,
+      "added": 58,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Cli/AiConnectionCommand.cs",
+      "oldPath": null,
+      "added": 165,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Cli/Meili.Cli.csproj",
+      "oldPath": null,
+      "added": 8,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Cli/Program.cs",
+      "oldPath": null,
+      "added": 294,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Cli/UpdateCommand.cs",
+      "oldPath": null,
+      "added": 40,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Core/Models/MarketData.cs",
+      "oldPath": null,
+      "added": 5,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Core/Quotes/QuoteHub.cs",
+      "oldPath": null,
+      "added": 5,
+      "deleted": 2
+    },
+    {
+      "path": "src/Meili.Core/Settings/AlertStore.cs",
+      "oldPath": null,
+      "added": 6,
+      "deleted": 7
+    },
+    {
+      "path": "src/Meili.Core/Settings/ChartDrawingStore.cs",
+      "oldPath": null,
+      "added": 33,
+      "deleted": 9
+    },
+    {
+      "path": "src/Meili.Core/Settings/SettingsStore.cs",
+      "oldPath": null,
+      "added": 5,
+      "deleted": 4
+    },
+    {
+      "path": "src/Meili.Core/Settings/SnapshotFile.cs",
+      "oldPath": null,
+      "added": 55,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Data/Providers/Yahoo/YahooProvider.cs",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/App.axaml",
+      "oldPath": null,
+      "added": 3,
+      "deleted": 55
+    },
+    {
+      "path": "src/Meili.Mac/App.axaml.cs",
+      "oldPath": null,
+      "added": 112,
+      "deleted": 6
+    },
+    {
+      "path": "src/Meili.Mac/DesignSystem/Components.axaml",
+      "oldPath": null,
+      "added": 34,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/DesignSystem/ThemeDefaults.axaml",
+      "oldPath": null,
+      "added": 62,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/DesignSystem/Tokens.axaml",
+      "oldPath": null,
+      "added": 34,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/DesignSystem/WindowChrome.axaml",
+      "oldPath": null,
+      "added": 10,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/MacMenu.cs",
+      "oldPath": null,
+      "added": 1,
+      "deleted": 1
+    },
+    {
+      "path": "src/Meili.Mac/MainWindow.Background.cs",
+      "oldPath": null,
+      "added": 30,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/MainWindow.News.cs",
+      "oldPath": null,
+      "added": 42,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/MainWindow.Updates.cs",
+      "oldPath": null,
+      "added": 31,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/MainWindow.Workspace.cs",
+      "oldPath": null,
+      "added": 165,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/MainWindow.axaml",
+      "oldPath": null,
+      "added": 73,
+      "deleted": 24
+    },
+    {
+      "path": "src/Meili.Mac/MainWindow.axaml.cs",
+      "oldPath": null,
+      "added": 21,
+      "deleted": 32
+    },
+    {
+      "path": "src/Meili.Mac/Meili.Mac.csproj",
+      "oldPath": null,
+      "added": 1,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Platform/CloseAskDialog.cs",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 2
+    },
+    {
+      "path": "src/Meili.Mac/Platform/ConfirmDialog.cs",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 2
+    },
+    {
+      "path": "src/Meili.Mac/Platform/MacComposition.cs",
+      "oldPath": null,
+      "added": 1,
+      "deleted": 1
+    },
+    {
+      "path": "src/Meili.Mac/Platform/MacQuoteStatusItem.cs",
+      "oldPath": null,
+      "added": 144,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Platform/MacUiPlatform.cs",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Platform/MenuBarQuote.cs",
+      "oldPath": null,
+      "added": 121,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Platform/NewsReaderWindow.cs",
+      "oldPath": null,
+      "added": 84,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Platform/NewsWebView.cs",
+      "oldPath": null,
+      "added": 235,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Platform/QuotePanelWindow.cs",
+      "oldPath": null,
+      "added": 88,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Platform/WebChartControl.cs",
+      "oldPath": null,
+      "added": 58,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Platform/WebTabPane.cs",
+      "oldPath": null,
+      "added": 81,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Styles.axaml",
+      "oldPath": null,
+      "added": 62,
+      "deleted": 9
+    },
+    {
+      "path": "src/Meili.Mac/Views/AlertsPage.axaml",
+      "oldPath": null,
+      "added": 27,
+      "deleted": 34
+    },
+    {
+      "path": "src/Meili.Mac/Views/ChartsPage.axaml",
+      "oldPath": null,
+      "added": 127,
+      "deleted": 111
+    },
+    {
+      "path": "src/Meili.Mac/Views/ChartsPage.axaml.cs",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 97
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/AppCard.cs",
+      "oldPath": null,
+      "added": 10,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/AppDialog.cs",
+      "oldPath": null,
+      "added": 21,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/AppDisclosure.cs",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/AppDrawer.cs",
+      "oldPath": null,
+      "added": 28,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/AppFormHeader.cs",
+      "oldPath": null,
+      "added": 31,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/AppHelp.cs",
+      "oldPath": null,
+      "added": 27,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/AppLoading.cs",
+      "oldPath": null,
+      "added": 25,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/AppMotion.cs",
+      "oldPath": null,
+      "added": 24,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/AppPopover.cs",
+      "oldPath": null,
+      "added": 48,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/AppSelect.cs",
+      "oldPath": null,
+      "added": 24,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/ArticleSplitView.cs",
+      "oldPath": null,
+      "added": 44,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/LucideIcon.cs",
+      "oldPath": null,
+      "added": 27,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/QuoteSparkline.cs",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/Controls/SymbolBox.cs",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 2
+    },
+    {
+      "path": "src/Meili.Mac/Views/DashboardPage.axaml",
+      "oldPath": null,
+      "added": 14,
+      "deleted": 55
+    },
+    {
+      "path": "src/Meili.Mac/Views/DataSourcesPage.axaml",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 16
+    },
+    {
+      "path": "src/Meili.Mac/Views/MacConverters.cs",
+      "oldPath": null,
+      "added": 4,
+      "deleted": 4
+    },
+    {
+      "path": "src/Meili.Mac/Views/NewsPage.axaml",
+      "oldPath": null,
+      "added": 14,
+      "deleted": 14
+    },
+    {
+      "path": "src/Meili.Mac/Views/OptionsPage.axaml",
+      "oldPath": null,
+      "added": 13,
+      "deleted": 11
+    },
+    {
+      "path": "src/Meili.Mac/Views/SettingsPage.axaml",
+      "oldPath": null,
+      "added": 140,
+      "deleted": 68
+    },
+    {
+      "path": "src/Meili.Mac/Views/StrategyPage.axaml",
+      "oldPath": null,
+      "added": 27,
+      "deleted": 23
+    },
+    {
+      "path": "src/Meili.Mac/Views/StrategyPage.axaml.cs",
+      "oldPath": null,
+      "added": 19,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/UpdateDialog.axaml",
+      "oldPath": null,
+      "added": 25,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/UpdateDialog.axaml.cs",
+      "oldPath": null,
+      "added": 7,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Mac/Views/WatchlistPage.axaml",
+      "oldPath": null,
+      "added": 12,
+      "deleted": 11
+    },
+    {
+      "path": "src/Meili.Mac/Views/WatchlistPage.axaml.cs",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/Fonts/SourceCode-OFL.txt",
+      "oldPath": null,
+      "added": 93,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/Fonts/SourceCodePro-Regular.ttf",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "src/Meili.Shared/Assets/Fonts/SourceSans-OFL.txt",
+      "oldPath": null,
+      "added": 93,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/Fonts/SourceSans3-Regular.ttf",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "src/Meili.Shared/Assets/Fonts/SourceSans3-Semibold.ttf",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "src/Meili.Shared/Assets/Fonts/SourceSerif-OFL.txt",
+      "oldPath": null,
+      "added": 93,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/Fonts/SourceSerif4-Regular.ttf",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "src/Meili.Shared/Assets/Fonts/provenance.json",
+      "oldPath": null,
+      "added": 44,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/LICENSE",
+      "oldPath": null,
+      "added": 43,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/activity.svg",
+      "oldPath": null,
+      "added": 15,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/arrow-down.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/arrow-left.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/arrow-right.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/arrow-up-down.svg",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/arrow-up.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/badge-dollar-sign.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/bell.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/calendar-clock.svg",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/calendar.svg",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/chart-candlestick.svg",
+      "oldPath": null,
+      "added": 21,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/chart-no-axes-combined.svg",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/check.svg",
+      "oldPath": null,
+      "added": 15,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/chevron-down.svg",
+      "oldPath": null,
+      "added": 15,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/chevron-left.svg",
+      "oldPath": null,
+      "added": 15,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/chevron-right.svg",
+      "oldPath": null,
+      "added": 15,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/circle-check.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/circle-help.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/circle-x.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/copy.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/corner-down-left.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/download.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/ellipsis.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/external-link.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/folder.svg",
+      "oldPath": null,
+      "added": 15,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/globe.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/hash.svg",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/house.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/info.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/keyboard.svg",
+      "oldPath": null,
+      "added": 23,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/languages.svg",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/list.svg",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/minus.svg",
+      "oldPath": null,
+      "added": 15,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/newspaper.svg",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/pencil.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/plug.svg",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/plus.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/provenance.json",
+      "oldPath": null,
+      "added": 60,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/refresh-cw.svg",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/router.svg",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/settings.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/star.svg",
+      "oldPath": null,
+      "added": 15,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/sun-moon.svg",
+      "oldPath": null,
+      "added": 19,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/table-2.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/trash-2.svg",
+      "oldPath": null,
+      "added": 19,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/trending-up.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/triangle-alert.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/waves.svg",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Assets/NavigationIcons/x.svg",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/DesignSystem/research.json",
+      "oldPath": null,
+      "added": 69,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/DesignSystem/tokens.json",
+      "oldPath": null,
+      "added": 131,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Meili.Shared.csproj",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/AppLaunchOptions.cs",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/ChartEventAlignment.cs",
+      "oldPath": null,
+      "added": 37,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/ChartPainter.cs",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 273
+    },
+    {
+      "path": "src/Meili.Shared/Services/DesignMotion.cs",
+      "oldPath": null,
+      "added": 13,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/DesignTokens.cs",
+      "oldPath": null,
+      "added": 124,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/DesktopActivity.cs",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/IntradaySparkline.cs",
+      "oldPath": null,
+      "added": 25,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/IvAlertSampler.cs",
+      "oldPath": null,
+      "added": 34,
+      "deleted": 40
+    },
+    {
+      "path": "src/Meili.Shared/Services/NavigationIcons.cs",
+      "oldPath": null,
+      "added": 119,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/NewsReaderPolicy.cs",
+      "oldPath": null,
+      "added": 9,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/QuoteMovement.cs",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/QuotePump.cs",
+      "oldPath": null,
+      "added": 25,
+      "deleted": 31
+    },
+    {
+      "path": "src/Meili.Shared/Services/SharedComposition.cs",
+      "oldPath": null,
+      "added": 4,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/StrategyWorkbench.cs",
+      "oldPath": null,
+      "added": 83,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/ThemePalette.cs",
+      "oldPath": null,
+      "added": 56,
+      "deleted": 23
+    },
+    {
+      "path": "src/Meili.Shared/Services/UiPlatform.cs",
+      "oldPath": null,
+      "added": 6,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/UpdateCoordinator.cs",
+      "oldPath": null,
+      "added": 101,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/WebChartSession.cs",
+      "oldPath": null,
+      "added": 203,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/WebChartSnapshot.cs",
+      "oldPath": null,
+      "added": 71,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/Services/WebWorkspace.cs",
+      "oldPath": null,
+      "added": 65,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/AlertsViewModel.cs",
+      "oldPath": null,
+      "added": 6,
+      "deleted": 3
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/ChartsViewModel.cs",
+      "oldPath": null,
+      "added": 96,
+      "deleted": 7
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/DashboardViewModel.cs",
+      "oldPath": null,
+      "added": 11,
+      "deleted": 7
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/NewsViewModel.cs",
+      "oldPath": null,
+      "added": 4,
+      "deleted": 1
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/OptionsViewModel.cs",
+      "oldPath": null,
+      "added": 23,
+      "deleted": 14
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/QuotePanelViewModel.cs",
+      "oldPath": null,
+      "added": 87,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/SettingsViewModel.cs",
+      "oldPath": null,
+      "added": 57,
+      "deleted": 1
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/ShellViewModel.cs",
+      "oldPath": null,
+      "added": 47,
+      "deleted": 7
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/StrategyLegRow.cs",
+      "oldPath": null,
+      "added": 8,
+      "deleted": 4
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/StrategyViewModel.Saved.cs",
+      "oldPath": null,
+      "added": 4,
+      "deleted": 2
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/StrategyViewModel.Workbench.cs",
+      "oldPath": null,
+      "added": 92,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/StrategyViewModel.cs",
+      "oldPath": null,
+      "added": 14,
+      "deleted": 1
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/UpdateViewModel.cs",
+      "oldPath": null,
+      "added": 164,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/WatchlistViewModel.cs",
+      "oldPath": null,
+      "added": 12,
+      "deleted": 11
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/chart.js",
+      "oldPath": null,
+      "added": 531,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/components.css",
+      "oldPath": null,
+      "added": 28,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/design-tokens.css",
+      "oldPath": null,
+      "added": 6,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/icons.js",
+      "oldPath": null,
+      "added": 14,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/index.html",
+      "oldPath": null,
+      "added": 86,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/motion.js",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/vendor/LICENSE",
+      "oldPath": null,
+      "added": 201,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/vendor/NOTICE",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/vendor/lightweight-charts.js",
+      "oldPath": null,
+      "added": 7,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/vendor/provenance.json",
+      "oldPath": null,
+      "added": 7,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/workbench.html",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "src/Meili.Shared/WebCharts/workbench.js",
+      "oldPath": null,
+      "added": 130,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Fixtures/QuotePanelMarketData.cs",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/BackgroundLifecycleTests.cs",
+      "oldPath": null,
+      "added": 25,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/ChartFooterTests.cs",
+      "oldPath": null,
+      "added": 40,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/ChartThemeTests.cs",
+      "oldPath": null,
+      "added": 101,
+      "deleted": 10
+    },
+    {
+      "path": "tests/Meili.App.Tests/FormAlignmentTests.cs",
+      "oldPath": null,
+      "added": 53,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/Meili.App.Tests.csproj",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/NewsReaderFixture.cs",
+      "oldPath": null,
+      "added": 63,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/NewsSplitTests.cs",
+      "oldPath": null,
+      "added": 64,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/QuotePanelTests.cs",
+      "oldPath": null,
+      "added": 23,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/TestIsolation.cs",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/UpdateNotificationTests.cs",
+      "oldPath": null,
+      "added": 49,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/UxInteractionTests.cs",
+      "oldPath": null,
+      "added": 52,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/ViewModelTests.cs",
+      "oldPath": null,
+      "added": 4,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/WindowChromeTests.cs",
+      "oldPath": null,
+      "added": 29,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Host/Meili.Automation.Host.csproj",
+      "oldPath": null,
+      "added": 7,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Host/Program.cs",
+      "oldPath": null,
+      "added": 26,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Host/UpdateFixture.cs",
+      "oldPath": null,
+      "added": 22,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Tests/AiSkillInstallerTests.cs",
+      "oldPath": null,
+      "added": 68,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Tests/AutomationTests.cs",
+      "oldPath": null,
+      "added": 137,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Tests/FakeMarket.cs",
+      "oldPath": null,
+      "added": 25,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Tests/Fixtures/previous-skill.md",
+      "oldPath": null,
+      "added": 86,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Tests/FullCoverageTests.cs",
+      "oldPath": null,
+      "added": 110,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Tests/MarketTimelineTests.cs",
+      "oldPath": null,
+      "added": 70,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Tests/McpSessionTests.cs",
+      "oldPath": null,
+      "added": 44,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Tests/Meili.Automation.Tests.csproj",
+      "oldPath": null,
+      "added": 9,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Tests/OptionEntryReferenceTests.cs",
+      "oldPath": null,
+      "added": 21,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Automation.Tests/UpdateTests.cs",
+      "oldPath": null,
+      "added": 148,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Core.Tests/DrawingEditTests.cs",
+      "oldPath": null,
+      "added": 31,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Data.Tests/CalendarMetadataTests.cs",
+      "oldPath": null,
+      "added": 20,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/AiSetupTests.cs",
+      "oldPath": null,
+      "added": 81,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/BackgroundLifecycleTests.cs",
+      "oldPath": null,
+      "added": 30,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/ButtonAlignmentTests.cs",
+      "oldPath": null,
+      "added": 93,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/ChartFooterTests.cs",
+      "oldPath": null,
+      "added": 40,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/ChartWorkspaceTests.cs",
+      "oldPath": null,
+      "added": 79,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/DesignSystemTests.cs",
+      "oldPath": null,
+      "added": 76,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/FormAlignmentTests.cs",
+      "oldPath": null,
+      "added": 54,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/LucideIconTests.cs",
+      "oldPath": null,
+      "added": 42,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/MacHost.cs",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 1
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/Meili.Mac.Tests.csproj",
+      "oldPath": null,
+      "added": 2,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/MenuBarQuoteTests.cs",
+      "oldPath": null,
+      "added": 60,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/NewsSplitTests.cs",
+      "oldPath": null,
+      "added": 35,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/QuotePanelTests.cs",
+      "oldPath": null,
+      "added": 37,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/ReaderThemeTests.cs",
+      "oldPath": null,
+      "added": 45,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/UpdateNotificationTests.cs",
+      "oldPath": null,
+      "added": 46,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/UpdatePanelTests.cs",
+      "oldPath": null,
+      "added": 54,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/UxInteractionTests.cs",
+      "oldPath": null,
+      "added": 98,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/WebWorkspaceTests.cs",
+      "oldPath": null,
+      "added": 99,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/WindowChromeTests.cs",
+      "oldPath": null,
+      "added": 37,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/WorkbenchPageTests.cs",
+      "oldPath": null,
+      "added": 29,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj",
+      "oldPath": null,
+      "added": 19,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.NewsBrowser.Smoke/Program.cs",
+      "oldPath": null,
+      "added": 403,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/AiConnectionTests.cs",
+      "oldPath": null,
+      "added": 70,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/BackgroundPolicyTests.cs",
+      "oldPath": null,
+      "added": 49,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/ChartEventTests.cs",
+      "oldPath": null,
+      "added": 86,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/FakeUiPlatform.cs",
+      "oldPath": null,
+      "added": 7,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/FakeUpdates.cs",
+      "oldPath": null,
+      "added": 38,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/IntradaySparklineTests.cs",
+      "oldPath": null,
+      "added": 17,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/NewsReaderTests.cs",
+      "oldPath": null,
+      "added": 44,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/PricingSnapshotTests.cs",
+      "oldPath": null,
+      "added": 6,
+      "deleted": 3
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/QuoteMovementTests.cs",
+      "oldPath": null,
+      "added": 16,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/SettingsUpdateTests.cs",
+      "oldPath": null,
+      "added": 60,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/StrategyWorkbenchTests.cs",
+      "oldPath": null,
+      "added": 119,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/UpdateNotificationTests.cs",
+      "oldPath": null,
+      "added": 85,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/UpstreamIntegrationTests.cs",
+      "oldPath": null,
+      "added": 63,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/WebChartTests.cs",
+      "oldPath": null,
+      "added": 134,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Shared.Tests/WebWorkspaceTests.cs",
+      "oldPath": null,
+      "added": 58,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Workbench.Host/Meili.Workbench.Host.csproj",
+      "oldPath": null,
+      "added": 9,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Workbench.Host/Program.cs",
+      "oldPath": null,
+      "added": 46,
+      "deleted": 0
+    },
+    {
+      "path": "tests/SharedFixtures/WorkbenchFixture.cs",
+      "oldPath": null,
+      "added": 54,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/capability_cases.json",
+      "oldPath": null,
+      "added": 921,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/check_capability_coverage.py",
+      "oldPath": null,
+      "added": 145,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/check_cli_package.py",
+      "oldPath": null,
+      "added": 89,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/check_desktop_package.py",
+      "oldPath": null,
+      "added": 70,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/cli_mcp_smoke.py",
+      "oldPath": null,
+      "added": 197,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/connection_smoke.py",
+      "oldPath": null,
+      "added": 78,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/desktop_capabilities.json",
+      "oldPath": null,
+      "added": 621,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/desktop_coverage.py",
+      "oldPath": null,
+      "added": 31,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/dotnet_bundle.py",
+      "oldPath": null,
+      "added": 44,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/live_cli_mcp_smoke.py",
+      "oldPath": null,
+      "added": 159,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/skill_coverage.py",
+      "oldPath": null,
+      "added": 45,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_capability_guard.py",
+      "oldPath": null,
+      "added": 31,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_connection_setup.py",
+      "oldPath": null,
+      "added": 43,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_design_system.py",
+      "oldPath": null,
+      "added": 37,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_desktop_coverage.py",
+      "oldPath": null,
+      "added": 18,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_dotnet_bundle.py",
+      "oldPath": null,
+      "added": 30,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_live_validation.py",
+      "oldPath": null,
+      "added": 44,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_navigation_icons.py",
+      "oldPath": null,
+      "added": 48,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_release_policy.py",
+      "oldPath": null,
+      "added": 216,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_skill_coverage.py",
+      "oldPath": null,
+      "added": 42,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_update_release.py",
+      "oldPath": null,
+      "added": 29,
+      "deleted": 0
+    },
+    {
+      "path": "tests/automation/test_ux_audit.py",
+      "oldPath": null,
+      "added": 34,
+      "deleted": 0
+    },
+    {
+      "path": "tests/webcharts/test_drawings.py",
+      "oldPath": null,
+      "added": 89,
+      "deleted": 0
+    },
+    {
+      "path": "tests/webcharts/test_renderer.py",
+      "oldPath": null,
+      "added": 159,
+      "deleted": 0
+    },
+    {
+      "path": "tests/webcharts/test_sessions.py",
+      "oldPath": null,
+      "added": 55,
+      "deleted": 0
+    },
+    {
+      "path": "tests/webcharts/test_timeline.py",
+      "oldPath": null,
+      "added": 293,
+      "deleted": 0
+    },
+    {
+      "path": "tests/webcharts/test_workbench.py",
+      "oldPath": null,
+      "added": 97,
+      "deleted": 0
+    },
+    {
+      "path": "tools/env.ps1",
+      "oldPath": null,
+      "added": 5,
+      "deleted": 2
+    },
+    {
+      "path": "tools/env.sh",
+      "oldPath": null,
+      "added": 11,
+      "deleted": 0
+    }
+  ]
+}

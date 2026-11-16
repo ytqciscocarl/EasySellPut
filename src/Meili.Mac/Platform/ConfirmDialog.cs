@@ -5,7 +5,7 @@ using Avalonia.Layout;
 namespace Meili.Mac.Platform;
 
 /// <summary>Small modal OK/Cancel window (shown with ShowDialog, so it is awaited rather than blocking).</summary>
-internal sealed class ConfirmDialog : Window
+internal sealed class ConfirmDialog : Meili.Mac.Views.Controls.AppDialog
 {
     public ConfirmDialog(string title, string message)
     {
@@ -15,7 +15,7 @@ internal sealed class ConfirmDialog : Window
         SizeToContent = SizeToContent.Height;
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        var ok = new Button { Content = loc["Mac_Ok"], IsDefault = true, Classes = { "accent" }, MinWidth = 88, HorizontalContentAlignment = HorizontalAlignment.Center };
+        var ok = new Button { Content = loc["Mac_Ok"], IsDefault = true, Classes = { "Primary" }, MinWidth = 88, HorizontalContentAlignment = HorizontalAlignment.Center };
         var cancel = new Button { Content = loc["Mac_Cancel"], IsCancel = true, MinWidth = 88, Margin = new Thickness(0, 0, 8, 0), HorizontalContentAlignment = HorizontalAlignment.Center };
         ok.Click += (_, _) => Close(true);
         cancel.Click += (_, _) => Close(false);

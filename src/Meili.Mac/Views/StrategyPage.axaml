@@ -1,9 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ds="using:Meili.Mac.Views.Controls"
+    xmlns:ux="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:local="using:Meili.Mac.Views"
              xmlns:controls="using:Meili.Mac.Views.Controls"
              xmlns:sp="using:ScottPlot.Avalonia"
+             xmlns:platform="using:Meili.Mac.Platform"
              x:Class="Meili.Mac.Views.StrategyPage"
              x:DataType="vm:StrategyViewModel">
     <UserControl.Styles>
@@ -14,32 +17,23 @@
             <Setter Property="Foreground" Value="{DynamicResource DownBrush}" />
         </Style>
     </UserControl.Styles>
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid RowDefinitions="Auto,*">
         <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="32,16,32,4">
-            <TextBlock Classes="PageTitle" Text="{DynamicResource St_Title}" />
-            <Border Margin="0,8,0,8" Padding="12,8" CornerRadius="8"
-                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                    IsVisible="{Binding ShowHint}">
-                <DockPanel>
-                    <Button DockPanel.Dock="Right" Classes="Subtle" Padding="10,4" Margin="12,0,0,0"
-                            Command="{Binding DismissHintCommand}" Content="{DynamicResource St_HintDismiss}" />
-                    <TextBlock Classes="Secondary" FontSize="14" TextWrapping="Wrap" Text="{DynamicResource St_Hint}" />
-                </DockPanel>
-            </Border>
+            <ux:AppFormHeader Title="{DynamicResource St_Title}" HelpText="{DynamicResource St_Hint}" IsPageTitle="True" Margin="0,0,0,4"/>
             <DockPanel Margin="0,0,0,8">
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource St_Refresh}" />
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource St_Refresh}"  IsEnabled="{Binding !IsBusy}"/>
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Content="{DynamicResource St_SavedMenu}">
                     <Button.Flyout>
                         <Flyout Placement="BottomEdgeAlignedRight">
                             <StackPanel Width="320" Spacing="8">
-                                <ComboBox ItemsSource="{Binding Saved}" SelectedItem="{Binding SelectedSaved}"
+                                <ds:AppSelect ItemsSource="{Binding Saved}" SelectedItem="{Binding SelectedSaved}"
                                           DisplayMemberBinding="{ReflectionBinding Name}" />
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <Button Command="{Binding LoadSavedCommand}" Content="{DynamicResource St_LoadSaved}" />
                                     <Button Command="{Binding DeleteSavedCommand}" Content="{DynamicResource St_DeleteSaved}" />
                                 </StackPanel>
                                 <DockPanel>
-                                    <Button DockPanel.Dock="Right" Classes="Accent" Margin="8,0,0,0"
+                                    <Button DockPanel.Dock="Right" Classes="Primary" Margin="8,0,0,0"
                                             Command="{Binding SaveStrategyCommand}" Content="{DynamicResource St_Save}" />
                                     <TextBox PlaceholderText="{DynamicResource St_SaveName}" Text="{Binding SaveName}" />
                                 </DockPanel>
@@ -50,10 +44,10 @@
                 <NumericUpDown DockPanel.Dock="Right" Value="{Binding Quantity}" Minimum="1" Maximum="1000" Increment="1"
                                FormatString="0" Width="110" Margin="8,0,0,0" />
                 <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0" Text="{DynamicResource St_Quantity}" />
-                <ComboBox DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" ItemsSource="{Binding Presets}"
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" ItemsSource="{Binding Presets}"
                           SelectedItem="{Binding SelectedPreset}" DisplayMemberBinding="{Binding Label, x:DataType=vm:PresetChoice}" />
                 <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0" Text="{DynamicResource St_Preset}" />
-                <ComboBox DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" IsVisible="{Binding NeedsFarExpiration}"
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" IsVisible="{Binding NeedsFarExpiration}"
                           ItemsSource="{Binding FarExpirations}" SelectedItem="{Binding SelectedFarExpiration}"
                           DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
                 <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0"
@@ -64,13 +58,13 @@
                         IsVisible="{Binding IsExpirationToday}">
                     <TextBlock Classes="Caption" Foreground="{DynamicResource DownBrush}" Text="{DynamicResource St_ExpiresToday}" />
                 </Border>
-                <ComboBox DockPanel.Dock="Right" MinWidth="200" Margin="8,0,0,0" ItemsSource="{Binding Expirations}"
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="200" Margin="8,0,0,0" ItemsSource="{Binding Expirations}"
                           SelectedItem="{Binding SelectedExpiration}" DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
                 <controls:SymbolBox x:Name="SymbolInput" MinWidth="160" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}"
                                     CommitCommand="{Binding LoadFromBoxCommand}" />
             </DockPanel>
             <WrapPanel Margin="0,0,0,2">
-                <ProgressBar IsIndeterminate="True" Width="60" Height="8" Margin="0,0,8,4" IsVisible="{Binding IsBusy}" />
+                <controls:AppLoading Margin="0,0,8,4" IsVisible="{Binding IsBusy}" />
                 <TextBlock Classes="Caption" Text="{Binding Headline}" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,12,4" />
                 <TextBlock Classes="Caption" Text="{Binding LivePriceText}" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,8,4"
                            ToolTip.Tip="{DynamicResource Op_LivePriceTip}" />
@@ -88,7 +82,13 @@
             </WrapPanel>
         </StackPanel>
 
-        <ScrollViewer x:Name="MidScroll" Grid.Row="1" Margin="32,0,32,8" MaxHeight="360" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <TabControl x:Name="SurfaceTabs" Grid.Row="1" Margin="16,0,16,12">
+            <TabItem x:Name="WorkbenchTab" Header="{DynamicResource Wb_Workbench}" IsSelected="True">
+                <platform:WebChartControl x:Name="Workspace" MinHeight="300" />
+            </TabItem>
+            <TabItem x:Name="DetailedTab" Header="{DynamicResource Wb_Details}">
+                <Grid RowDefinitions="Auto,*">
+        <ScrollViewer x:Name="MidScroll" Grid.Row="0" Margin="32,0,32,8" MaxHeight="360" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <Grid ColumnDefinitions="*,20,*">
                 <DockPanel Grid.Column="0">
                     <TextBlock DockPanel.Dock="Top" Classes="Caption" Text="{DynamicResource St_Summary}" Margin="0,0,0,4" />
@@ -110,7 +110,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                                 <DataGridTemplateColumn.CellEditingTemplate>
                                     <DataTemplate x:DataType="vm:StrategyLegRow">
-                                        <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding $parent[DataGrid].((vm:StrategyViewModel)DataContext).TypeChoices}"
+                                        <ds:AppSelect HorizontalAlignment="Stretch" ItemsSource="{Binding $parent[DataGrid].((vm:StrategyViewModel)DataContext).TypeChoices}"
                                                   SelectedValueBinding="{ReflectionBinding Value}" DisplayMemberBinding="{ReflectionBinding Label}"
                                                   SelectedValue="{Binding Type}" />
                                     </DataTemplate>
@@ -124,7 +124,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                                 <DataGridTemplateColumn.CellEditingTemplate>
                                     <DataTemplate x:DataType="vm:StrategyLegRow">
-                                        <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding $parent[DataGrid].((vm:StrategyViewModel)DataContext).SideChoices}"
+                                        <ds:AppSelect HorizontalAlignment="Stretch" ItemsSource="{Binding $parent[DataGrid].((vm:StrategyViewModel)DataContext).SideChoices}"
                                                   SelectedValueBinding="{ReflectionBinding Value}" DisplayMemberBinding="{ReflectionBinding Label}"
                                                   SelectedValue="{Binding Side}" />
                                     </DataTemplate>
@@ -177,7 +177,7 @@
             </Grid>
         </ScrollViewer>
 
-        <DockPanel Grid.Row="2" Margin="16,0,16,12">
+        <DockPanel Grid.Row="1" Margin="16,0,16,12">
             <WrapPanel DockPanel.Dock="Top" Margin="16,0,16,6">
                 <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,0,10,0" Text="{DynamicResource St_Horizon}" />
                 <Button x:Name="Tn0" Classes="Chip" Padding="10,6" Margin="0,0,6,0" Content="{DynamicResource St_TnNow}" Command="{Binding SelectHorizonCommand}" />
@@ -228,5 +228,9 @@
                 </ScrollViewer>
             </Grid>
         </DockPanel>
+
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>

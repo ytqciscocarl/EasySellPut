@@ -45,15 +45,16 @@ public sealed class SymbolBox : UserControl
 
     public SymbolBox()
     {
-        _box = new Wpf.Ui.Controls.TextBox { FontSize = 14, MinHeight = 32 };
+        _box = new Wpf.Ui.Controls.TextBox { FontSize = 14, MinHeight = 32, Height = 32, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(8, 4, 8, 4) };
         _box.SetResourceReference(Wpf.Ui.Controls.TextBox.PlaceholderTextProperty, "Sb_Placeholder");
         _box.TextChanged += OnBoxTextChanged;
         _box.PreviewKeyDown += OnBoxKeyDown;
 
         var chevron = new Wpf.Ui.Controls.Button
         {
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent, Padding = new Thickness(8, 4, 8, 4), Margin = new Thickness(4, 0, 0, 0),
-            Icon = new Wpf.Ui.Controls.SymbolIcon { Symbol = Wpf.Ui.Controls.SymbolRegular.ChevronDown24, FontSize = 14 },
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent, Width = 32, Height = 32, Padding = new Thickness(0),
+            HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0),
+            Content = new LucideIcon { Kind = "ChevronDown", Width = 14, Height = 14 },
             Focusable = false,
         };
         chevron.SetResourceReference(ToolTipProperty, "Sb_ShowWatchlist");

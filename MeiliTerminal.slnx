@@ -1,5 +1,7 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Meili.Application/Meili.Application.csproj" />
+    <Project Path="src/Meili.Cli/Meili.Cli.csproj" />
     <Project Path="src/Meili.Core/Meili.Core.csproj" />
     <Project Path="src/Meili.Data/Meili.Data.csproj" />
     <Project Path="src/Meili.App/Meili.App.csproj" />
@@ -8,6 +10,10 @@
     <Project Path="src/Meili.Mac/Meili.Mac.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Meili.Workbench.Host/Meili.Workbench.Host.csproj" />
+    <Project Path="tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj" />
+    <Project Path="tests/Meili.Automation.Host/Meili.Automation.Host.csproj" />
+    <Project Path="tests/Meili.Automation.Tests/Meili.Automation.Tests.csproj" />
     <Project Path="tests/Meili.Core.Tests/Meili.Core.Tests.csproj" />
     <Project Path="tests/Meili.Data.Tests/Meili.Data.Tests.csproj" />
     <Project Path="tests/Meili.Analytics.Tests/Meili.Analytics.Tests.csproj" />

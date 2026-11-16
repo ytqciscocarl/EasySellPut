@@ -324,6 +324,8 @@ public sealed class YahooProvider : ProviderBase, IQuoteProvider, IBarsProvider,
             ProfitMargin = N(fd, "profitMargins") ?? N(ks, "profitMargins"), Revenue = N(fd, "totalRevenue"),
             TargetPrice = N(fd, "targetMeanPrice"), PriceToBook = N(ks, "priceToBook"),
             NextEarningsDate = D(ce?.Path("earnings", "earningsDate")?.At(0)),
+            EarningsDateEnd = D(ce?.Path("earnings", "earningsDate")?.At(1)),
+            EarningsDateStatus = ce?.Prop("earnings")?.Bool("isEarningsDateEstimate") switch { true => EventDateStatus.Estimated, false => EventDateStatus.SourceConfirmed, _ => EventDateStatus.Unknown },
             ExDividendDate = D(sd?.Prop("exDividendDate")) ?? D(ce?.Prop("exDividendDate")),
             Source = "yahoo",
         };

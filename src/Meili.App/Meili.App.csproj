@@ -13,6 +13,7 @@
     <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" />
     <PackageReference Include="WPF-UI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
@@ -37,4 +38,5 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Meili.App.Tests" />
   </ItemGroup>
+  <ItemGroup><Resource Include="../Meili.Shared/Assets/Fonts/**" Link="Assets/Fonts/%(Filename)%(Extension)" /></ItemGroup>
 </Project>

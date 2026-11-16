@@ -1,0 +1,1943 @@
+[
+  {
+    "name": "search_symbols",
+    "description": "Search symbols across configured providers.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Ticker or company-name search text; use returned ticker symbols in subsequent tools.",
+          "maxLength": 200
+        },
+        "limit": {
+          "type": "integer",
+          "description": "1..50, default 10",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_quotes",
+    "description": "Batch quotes with source, market time, download time and declared delay. Missing symbols are reported.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbols": {
+          "type": "array",
+          "description": "1..100 ticker symbols",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "symbols"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_bars",
+    "description": "Historical OHLCV with provenance, adjustment and offline-cache status. Missing OHLC is null, never fabricated.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "interval": {
+          "type": "string",
+          "description": "default 1d",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "1d",
+            "1w",
+            "1mo"
+          ],
+          "maxLength": 200
+        },
+        "from": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "to": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "adjust": {
+          "type": "string",
+          "description": "default split",
+          "enum": [
+            "split",
+            "total"
+          ],
+          "maxLength": 200
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_expirations",
+    "description": "List option expiration dates.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_option_chain",
+    "description": "Paginated option contracts with source metadata and non-executable midpoint/last entry references (missing quotes stay null). Request expiry YYYY-MM-DD and optional right/strike filters.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "expiry": {
+          "type": "string",
+          "description": "Listed option expiration YYYY-MM-DD; discover actual dates with get_expirations.",
+          "maxLength": 200
+        },
+        "right": {
+          "type": "string",
+          "description": "Option right; use the exact call/put enum spelling in this schema.",
+          "enum": [
+            "call",
+            "put"
+          ],
+          "maxLength": 200
+        },
+        "minStrike": {
+          "type": "number",
+          "description": "Inclusive strike filter in underlying quote currency; not an option premium."
+        },
+        "maxStrike": {
+          "type": "number",
+          "description": "Inclusive strike filter in underlying quote currency; not an option premium."
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_fundamentals",
+    "description": "Company fundamentals with source and freshness metadata.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_financials",
+    "description": "Financial statements with source and freshness metadata.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_news",
+    "description": "Recent provider news, retaining publisher, URL and publication time.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "limit": {
+          "type": "integer",
+          "description": "1..50, default 20",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_market_events",
+    "description": "Recent news and current earnings/ex-dividend calendar snapshot, with source, exact/date-only timing and estimate/confirmation metadata. Not a historical corporate-action archive.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "type": {
+          "type": "string",
+          "description": "default all",
+          "enum": [
+            "all",
+            "news",
+            "earnings",
+            "ex_dividend"
+          ],
+          "maxLength": 200
+        },
+        "from": {
+          "type": "string",
+          "description": "YYYY-MM-DD, inclusive Eastern calendar date",
+          "maxLength": 200
+        },
+        "to": {
+          "type": "string",
+          "description": "YYYY-MM-DD, inclusive Eastern calendar date",
+          "maxLength": 200
+        },
+        "limit": {
+          "type": "integer",
+          "description": "1..100, default 50",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_source_health",
+    "description": "Source health observed in THIS process only; unknown is not a successful connectivity check.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "calculate_option",
+    "description": "European Black-Scholes price/Greeks and optional solved IV; decimal units (0.25=25%). No network.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "right": {
+          "type": "string",
+          "description": "Option right; use the exact call/put enum spelling in this schema.",
+          "enum": [
+            "call",
+            "put"
+          ],
+          "maxLength": 200
+        },
+        "spot": {
+          "type": "number",
+          "description": "Underlying price per share. Use an observed quote or explicitly label a hypothetical scenario."
+        },
+        "strike": {
+          "type": "number",
+          "description": "Option strike per share in the underlying quote currency."
+        },
+        "years": {
+          "type": "number",
+          "description": "years argument for calculate_option; observe this field's schema type, bounds and operation semantics."
+        },
+        "rate": {
+          "type": "number",
+          "description": "Continuously compounded, default 0"
+        },
+        "dividendYield": {
+          "type": "number",
+          "description": "default 0"
+        },
+        "volatility": {
+          "type": "number",
+          "description": "Annualized IV as a decimal fraction, e.g. 0.25 = 25%; state observed versus assumed/model-derived origin."
+        },
+        "price": {
+          "type": "number",
+          "description": "Optional observed per-share price for IV solving"
+        }
+      },
+      "required": [
+        "right",
+        "spot",
+        "strike",
+        "years",
+        "volatility"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "calculate_indicators",
+    "description": "SMA, EMA and RSI on supplied close prices. Warm-up values are null. No network.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "closes": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "closes argument for calculate_indicators; observe this field's schema type, bounds and operation semantics."
+        },
+        "period": {
+          "type": "integer",
+          "description": "1..1000, default 14"
+        }
+      },
+      "required": [
+        "closes"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "analyze_strategy",
+    "description": "Position expiry P/L, boundedness, breakevens, optional pre-expiry Greeks and Reg-T estimate. Mixed expiries require valuationTime and IV. No network.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "legs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Call",
+                  "Put",
+                  "Stock"
+                ],
+                "maxLength": 200
+              },
+              "side": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Long",
+                  "Short"
+                ],
+                "maxLength": 200
+              },
+              "quantity": {
+                "type": "integer",
+                "description": ""
+              },
+              "strike": {
+                "type": "number",
+                "description": ""
+              },
+              "premium": {
+                "type": "number",
+                "description": ""
+              },
+              "expiry": {
+                "type": "string",
+                "description": "YYYY-MM-DD; required for options",
+                "maxLength": 200
+              },
+              "iv": {
+                "type": "number",
+                "description": "Optional decimal IV"
+              },
+              "multiplier": {
+                "type": "integer",
+                "description": "default 100; stock uses 1"
+              }
+            },
+            "required": [
+              "type",
+              "side",
+              "quantity",
+              "premium"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Explicit position legs. Preserve entry premiums, side, expiry, quantity and multiplier; never fabricate quotes."
+        },
+        "spot": {
+          "type": "number",
+          "description": "Underlying price per share. Use an observed quote or explicitly label a hypothetical scenario."
+        },
+        "valuationTime": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "rate": {
+          "type": "number",
+          "description": "Annual continuously compounded rate as a decimal fraction, e.g. 0.04 = 4%; obtain pricing assumptions before valuation."
+        },
+        "dividendYield": {
+          "type": "number",
+          "description": "Annual dividend yield as a decimal fraction, e.g. 0.02 = 2%; preserve provenance and unavailable-yield fallback."
+        },
+        "volatility": {
+          "type": "number",
+          "description": "Fallback decimal IV"
+        },
+        "low": {
+          "type": "number",
+          "description": "Underlying-price bound for the payoff/scenario plot, not an option premium."
+        },
+        "high": {
+          "type": "number",
+          "description": "Underlying-price bound for the payoff/scenario plot, not an option premium."
+        },
+        "points": {
+          "type": "integer",
+          "description": "2..1001, default 101"
+        }
+      },
+      "required": [
+        "legs",
+        "spot"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_watchlists",
+    "description": "Read grouped watchlists from the local desktop data directory.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_watchlist_group",
+    "description": "Create a local watchlist group.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Local watchlist group display name.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "rename_watchlist_group",
+    "description": "Rename a local watchlist group.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "string",
+          "description": "Existing local watchlist group id returned by get_watchlists; never substitute its display name.",
+          "maxLength": 200
+        },
+        "name": {
+          "type": "string",
+          "description": "Local watchlist group display name.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "groupId",
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_watchlist_group",
+    "description": "Remove a group; its symbols move to the first remaining group. The last group cannot be deleted.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "string",
+          "description": "Existing local watchlist group id returned by get_watchlists; never substitute its display name.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "groupId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "add_watchlist_symbol",
+    "description": "Add a ticker to a group.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "string",
+          "description": "Existing local watchlist group id returned by get_watchlists; never substitute its display name.",
+          "maxLength": 200
+        },
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "groupId",
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "remove_watchlist_symbol",
+    "description": "Remove a ticker from a group.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "string",
+          "description": "Existing local watchlist group id returned by get_watchlists; never substitute its display name.",
+          "maxLength": 200
+        },
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "groupId",
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_saved_strategies",
+    "description": "Read saved local strategies.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "save_strategy",
+    "description": "Save/replace a local strategy by name, using desktop-compatible JSON.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Local strategy name; saving an existing name replaces it. Read saved strategies first.",
+          "maxLength": 200
+        },
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "legs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Call",
+                  "Put",
+                  "Stock"
+                ],
+                "maxLength": 200
+              },
+              "side": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Long",
+                  "Short"
+                ],
+                "maxLength": 200
+              },
+              "quantity": {
+                "type": "integer",
+                "description": ""
+              },
+              "strike": {
+                "type": "number",
+                "description": ""
+              },
+              "premium": {
+                "type": "number",
+                "description": ""
+              },
+              "expiry": {
+                "type": "string",
+                "description": "YYYY-MM-DD; required for options",
+                "maxLength": 200
+              },
+              "iv": {
+                "type": "number",
+                "description": "Optional decimal IV"
+              },
+              "multiplier": {
+                "type": "integer",
+                "description": "default 100; stock uses 1"
+              }
+            },
+            "required": [
+              "type",
+              "side",
+              "quantity",
+              "premium"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Explicit position legs. Preserve entry premiums, side, expiry, quantity and multiplier; never fabricate quotes."
+        },
+        "kind": {
+          "type": "string",
+          "description": "default Custom",
+          "enum": [
+            "Custom",
+            "LongCall",
+            "LongPut",
+            "CoveredCall",
+            "ProtectivePut",
+            "BullCallSpread",
+            "BearCallSpread",
+            "BullPutSpread",
+            "BearPutSpread",
+            "LongStraddle",
+            "ShortStraddle",
+            "LongStrangle",
+            "ShortStrangle",
+            "IronCondor",
+            "LongCallButterfly",
+            "LongPutButterfly",
+            "Collar",
+            "IronButterfly",
+            "CalendarCall",
+            "CalendarPut",
+            "DiagonalCall"
+          ],
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "name",
+        "symbol",
+        "legs"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_strategy",
+    "description": "Delete a saved strategy by name.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Local strategy name; saving an existing name replaces it. Read saved strategies first.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_alerts",
+    "description": "Read local alert rules. Desktop remains responsible for continuous monitoring.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_alert_history",
+    "description": "Read paginated local alert history.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "save_alert",
+    "description": "Create a rule, or update an existing id while retaining monitor bookkeeping. Does not start monitoring.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "kind": {
+          "type": "string",
+          "description": "Alert trigger category; select the exact enum value in the schema.",
+          "enum": [
+            "PriceAbove",
+            "PriceBelow",
+            "PercentUp",
+            "PercentDown",
+            "VolumeAbove",
+            "IvAbove",
+            "IvBelow"
+          ],
+          "maxLength": 200
+        },
+        "threshold": {
+          "type": "number",
+          "description": "Alert trigger threshold in the selected kind's units; inspect the kind and existing rule before updating."
+        },
+        "id": {
+          "type": "string",
+          "description": "Existing alert rule id from get_alerts; omit only when save_alert creates a new rule.",
+          "maxLength": 200
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether this local alert rule is enabled. Desktop owns continuous monitoring."
+        },
+        "repeat": {
+          "type": "string",
+          "description": "repeat argument for save_alert; observe this field's schema type, bounds and operation semantics.",
+          "enum": [
+            "Once",
+            "Repeat"
+          ],
+          "maxLength": 200
+        },
+        "cooldownMinutes": {
+          "type": "integer",
+          "description": "1..1440"
+        },
+        "includeExtendedHours": {
+          "type": "boolean",
+          "description": "Whether the desktop rule may evaluate valid pre/after-market quotes."
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional user note for this alert; treated as literal text.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol",
+        "kind",
+        "threshold"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_alert",
+    "description": "Delete an alert rule; history is retained.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Existing alert rule id from get_alerts; omit only when save_alert creates a new rule.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "set_alert_enabled",
+    "description": "Enable/disable and re-arm a local alert rule.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Existing alert rule id from get_alerts; omit only when save_alert creates a new rule.",
+          "maxLength": 200
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether this local alert rule is enabled. Desktop owns continuous monitoring."
+        }
+      },
+      "required": [
+        "id",
+        "enabled"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "probe_data_sources",
+    "description": "Actively probe configured provider identities using the desktop router. Results apply to this process and the probed endpoint only; not a test of every capability. No arbitrary URLs.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "description": "Optional registered provider id; omitted probes all",
+          "maxLength": 200
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "clear_alert_history",
+    "description": "Clear local alert history, retaining alert rules and monitor state. Explicit write.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "move_watchlist_symbol",
+    "description": "Reorder one symbol within a watchlist group; target index is zero-based. Conflict-safe local write.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "string",
+          "description": "Existing local watchlist group id returned by get_watchlists; never substitute its display name.",
+          "maxLength": 200
+        },
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "toIndex": {
+          "type": "integer",
+          "description": "toIndex argument for move_watchlist_symbol; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 0,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "groupId",
+        "symbol",
+        "toIndex"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_chart_analysis",
+    "description": "All desktop K-line indicators (MA/EMA/BOLL/MACD/RSI/KDJ) and real volume on provider bars, computed before pagination; incomplete OHLC remains null. Optional comparison is rebased only on common timestamps.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "interval": {
+          "type": "string",
+          "description": "default 1d",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "1d",
+            "1w",
+            "1mo"
+          ],
+          "maxLength": 200
+        },
+        "from": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "to": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "adjust": {
+          "type": "string",
+          "description": "default split",
+          "enum": [
+            "split",
+            "total"
+          ],
+          "maxLength": 200
+        },
+        "indicators": {
+          "type": "object",
+          "properties": {
+            "maPeriod": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "emaPeriod": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "bollPeriod": {
+              "type": "integer",
+              "description": "",
+              "minimum": 2,
+              "maximum": 250
+            },
+            "bollWidth": {
+              "type": "number",
+              "description": "",
+              "minimum": 0.5,
+              "maximum": 5
+            },
+            "macdFast": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "macdSlow": {
+              "type": "integer",
+              "description": "",
+              "minimum": 2,
+              "maximum": 251
+            },
+            "macdSignal": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "rsiPeriod": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "kdjPeriod": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "kdjM1": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "kdjM2": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            }
+          },
+          "required": [],
+          "additionalProperties": false,
+          "description": "Optional shared indicator parameter overrides; observe nested bounds and null warm-up values."
+        },
+        "compareSymbol": {
+          "type": "string",
+          "description": "Optional comparison ticker. Rebase only on shared timestamps and retain missing-basis uncertainty.",
+          "maxLength": 200
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "analyze_option_chain",
+    "description": "Desktop option enrichment, IV smile, Greeks, spread/distance and previous local OI. Missing spot/quotes stay missing. Uses configured pricing assumptions; optional valuationTime makes time deterministic.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "expiry": {
+          "type": "string",
+          "description": "YYYY-MM-DD",
+          "maxLength": 200
+        },
+        "valuationTime": {
+          "type": "string",
+          "description": "ISO-8601 instant; default chain snapshot time",
+          "maxLength": 200
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_pricing_assumptions",
+    "description": "Configured/fetched risk-free rate with origin and symbol dividend yield. Unavailable yield falls back to zero explicitly.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_volatility_insights",
+    "description": "Current IV, IV rank/percentile from existing local history, and up to eight ATM term expirations. Does not record new history; insufficient history is explicit.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "valuationTime": {
+          "type": "string",
+          "description": "ISO-8601 instant; default now",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "record_option_snapshot",
+    "description": "Record current IV and OI into the shared local SQLite history. Explicit write; no background monitoring. Does not invent past observations.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "expiry": {
+          "type": "string",
+          "description": "Optional OI expiration YYYY-MM-DD; IV remains IV30/ATM nearest 30 days",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_strategy_presets",
+    "description": "Discover every supported strategy preset and its near/far expiry requirements. Custom legs use analyze_strategy/save_strategy.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "build_strategy",
+    "description": "Build any desktop preset from caller-supplied listed reference quotes using the shared Analytics strike selection. No network/save; reference premiums are not executable quotes.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "Strategy/drawing category; select the exact schema enum and required matching fields.",
+          "enum": [
+            "LongCall",
+            "LongPut",
+            "CoveredCall",
+            "ProtectivePut",
+            "BullCallSpread",
+            "BearCallSpread",
+            "BullPutSpread",
+            "BearPutSpread",
+            "LongStraddle",
+            "ShortStraddle",
+            "LongStrangle",
+            "ShortStrangle",
+            "IronCondor",
+            "LongCallButterfly",
+            "LongPutButterfly",
+            "Collar",
+            "IronButterfly",
+            "CalendarCall",
+            "CalendarPut",
+            "DiagonalCall"
+          ],
+          "maxLength": 200
+        },
+        "spot": {
+          "type": "number",
+          "description": "Underlying price per share. Use an observed quote or explicitly label a hypothetical scenario.",
+          "minimum": 1e-06,
+          "maximum": 1000000000
+        },
+        "expiry": {
+          "type": "string",
+          "description": "YYYY-MM-DD",
+          "maxLength": 200
+        },
+        "quotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "right": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Call",
+                  "Put"
+                ],
+                "maxLength": 200
+              },
+              "strike": {
+                "type": "number",
+                "description": "",
+                "minimum": 1e-06,
+                "maximum": 1000000000
+              },
+              "premium": {
+                "type": "number",
+                "description": "",
+                "minimum": 0,
+                "maximum": 1000000000
+              },
+              "iv": {
+                "type": "number",
+                "description": "",
+                "minimum": 0,
+                "maximum": 20
+              }
+            },
+            "required": [
+              "right",
+              "strike",
+              "premium"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 1000,
+          "description": "quotes argument for build_strategy; observe this field's schema type, bounds and operation semantics."
+        },
+        "farExpiry": {
+          "type": "string",
+          "description": "YYYY-MM-DD, later than expiry",
+          "maxLength": 200
+        },
+        "farQuotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "right": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Call",
+                  "Put"
+                ],
+                "maxLength": 200
+              },
+              "strike": {
+                "type": "number",
+                "description": "",
+                "minimum": 1e-06,
+                "maximum": 1000000000
+              },
+              "premium": {
+                "type": "number",
+                "description": "",
+                "minimum": 0,
+                "maximum": 1000000000
+              },
+              "iv": {
+                "type": "number",
+                "description": "",
+                "minimum": 0,
+                "maximum": 20
+              }
+            },
+            "required": [
+              "right",
+              "strike",
+              "premium"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 1000,
+          "description": "farQuotes argument for build_strategy; observe this field's schema type, bounds and operation semantics."
+        },
+        "quantity": {
+          "type": "integer",
+          "description": "Number of option contracts for a preset. Explicit stock legs use shares and multiplier 1.",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "wingSteps": {
+          "type": "integer",
+          "description": "Preset wing width in listed strike steps, not a raw dollar distance.",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "kind",
+        "spot",
+        "expiry",
+        "quotes"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "strategy_what_if",
+    "description": "Position and per-leg values/P&L/facts at an assumed price, with optional future horizon and IV shift. No GUI state/save. Mixed expiry requires valuationTime.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "legs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Call",
+                  "Put",
+                  "Stock"
+                ],
+                "maxLength": 200
+              },
+              "side": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Long",
+                  "Short"
+                ],
+                "maxLength": 200
+              },
+              "quantity": {
+                "type": "integer",
+                "description": ""
+              },
+              "strike": {
+                "type": "number",
+                "description": ""
+              },
+              "premium": {
+                "type": "number",
+                "description": ""
+              },
+              "expiry": {
+                "type": "string",
+                "description": "YYYY-MM-DD; required for options",
+                "maxLength": 200
+              },
+              "iv": {
+                "type": "number",
+                "description": "Optional decimal IV"
+              },
+              "multiplier": {
+                "type": "integer",
+                "description": "default 100; stock uses 1"
+              }
+            },
+            "required": [
+              "type",
+              "side",
+              "quantity",
+              "premium"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Explicit position legs. Preserve entry premiums, side, expiry, quantity and multiplier; never fabricate quotes."
+        },
+        "spot": {
+          "type": "number",
+          "description": "Underlying price per share. Use an observed quote or explicitly label a hypothetical scenario.",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "valuationTime": {
+          "type": "string",
+          "description": "ISO-8601 instant; omitted means intrinsic settlement for same-expiry legs",
+          "maxLength": 200
+        },
+        "horizonDays": {
+          "type": "integer",
+          "description": "Calendar days forward from the explicit valuation time; see schema bounds.",
+          "minimum": 0,
+          "maximum": 3650
+        },
+        "rate": {
+          "type": "number",
+          "description": "Annual continuously compounded rate as a decimal fraction, e.g. 0.04 = 4%; obtain pricing assumptions before valuation."
+        },
+        "dividendYield": {
+          "type": "number",
+          "description": "Annual dividend yield as a decimal fraction, e.g. 0.02 = 2%; preserve provenance and unavailable-yield fallback."
+        },
+        "volatility": {
+          "type": "number",
+          "description": "Annualized IV as a decimal fraction, e.g. 0.25 = 25%; state observed versus assumed/model-derived origin.",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "volatilityShift": {
+          "type": "number",
+          "description": "Additive decimal IV shift: 0.05 means five volatility points, not 5 percent relative change.",
+          "minimum": -20,
+          "maximum": 20
+        }
+      },
+      "required": [
+        "legs",
+        "spot"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_chart_drawings",
+    "description": "Read a symbol's persisted local horizontal/trend lines; does not control chart windows.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "add_chart_drawing",
+    "description": "Persist a bounded horizontal/trend line in the shared drawing store with conflict protection. Trend lines need distinct time1/time2.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "kind": {
+          "type": "string",
+          "description": "Strategy/drawing category; select the exact schema enum and required matching fields.",
+          "enum": [
+            "HorizontalLine",
+            "TrendLine"
+          ],
+          "maxLength": 200
+        },
+        "price1": {
+          "type": "number",
+          "description": "Drawing anchor price in the underlying quote currency; not a screen coordinate.",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "time1": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "price2": {
+          "type": "number",
+          "description": "Drawing anchor price in the underlying quote currency; not a screen coordinate.",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "time2": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol",
+        "kind",
+        "price1"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_chart_drawing",
+    "description": "Replace one persisted drawing by absolute zero-based index (offset + row index) using the revision from get_chart_drawings. Stale revisions fail without overwriting.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "index": {
+          "type": "integer",
+          "description": "index argument for update_chart_drawing; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 0,
+          "maximum": 199
+        },
+        "revision": {
+          "type": "string",
+          "description": "Exact revision from get_chart_drawings",
+          "maxLength": 200
+        },
+        "kind": {
+          "type": "string",
+          "description": "Strategy/drawing category; select the exact schema enum and required matching fields.",
+          "enum": [
+            "HorizontalLine",
+            "TrendLine"
+          ],
+          "maxLength": 200
+        },
+        "price1": {
+          "type": "number",
+          "description": "Drawing anchor price in the underlying quote currency; not a screen coordinate.",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "time1": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "price2": {
+          "type": "number",
+          "description": "Drawing anchor price in the underlying quote currency; not a screen coordinate.",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "time2": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol",
+        "index",
+        "revision",
+        "kind",
+        "price1"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_chart_drawing",
+    "description": "Delete one persisted drawing by absolute zero-based index (offset + row index) using the revision from get_chart_drawings. Other drawings remain; stale revisions fail.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "index": {
+          "type": "integer",
+          "description": "index argument for delete_chart_drawing; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 0,
+          "maximum": 199
+        },
+        "revision": {
+          "type": "string",
+          "description": "Exact revision from get_chart_drawings",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol",
+        "index",
+        "revision"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "clear_chart_drawings",
+    "description": "Clear persisted drawings for one symbol with conflict protection.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_preferences",
+    "description": "Patch allowlisted local preferences; omitted fields remain unchanged. No proxy URL/credentials, arbitrary paths or window control. Desktop reload/restart required after external changes.",
+    "writes": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string",
+          "description": "language argument for update_preferences; observe this field's schema type, bounds and operation semantics.",
+          "enum": [
+            "zh-CN",
+            "en-US"
+          ],
+          "maxLength": 200
+        },
+        "theme": {
+          "type": "string",
+          "description": "theme argument for update_preferences; observe this field's schema type, bounds and operation semantics.",
+          "enum": [
+            "System",
+            "Light",
+            "Dark"
+          ],
+          "maxLength": 200
+        },
+        "upDownColors": {
+          "type": "string",
+          "description": "upDownColors argument for update_preferences; observe this field's schema type, bounds and operation semantics.",
+          "enum": [
+            "RedUp",
+            "GreenUp"
+          ],
+          "maxLength": 200
+        },
+        "closeAction": {
+          "type": "string",
+          "description": "closeAction argument for update_preferences; observe this field's schema type, bounds and operation semantics.",
+          "enum": [
+            "Ask",
+            "MinimizeToTray",
+            "Exit"
+          ],
+          "maxLength": 200
+        },
+        "guideDismissed": {
+          "type": "boolean",
+          "description": "guideDismissed argument for update_preferences; observe this field's schema type, bounds and operation semantics."
+        },
+        "strategyHintDismissed": {
+          "type": "boolean",
+          "description": "strategyHintDismissed argument for update_preferences; observe this field's schema type, bounds and operation semantics."
+        },
+        "pricing": {
+          "type": "object",
+          "properties": {
+            "rateMode": {
+              "type": "string",
+              "description": "",
+              "enum": [
+                "Treasury13Week",
+                "Fixed"
+              ],
+              "maxLength": 200
+            },
+            "fixedRatePercent": {
+              "type": "number",
+              "description": "",
+              "minimum": -1,
+              "maximum": 20
+            }
+          },
+          "required": [],
+          "additionalProperties": false,
+          "description": "pricing argument for update_preferences; observe this field's schema type, bounds and operation semantics."
+        },
+        "alerts": {
+          "type": "object",
+          "properties": {
+            "maxQuoteDelayMinutes": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 240
+            },
+            "failureThreshold": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 20
+            }
+          },
+          "required": [],
+          "additionalProperties": false,
+          "description": "alerts argument for update_preferences; observe this field's schema type, bounds and operation semantics."
+        },
+        "charts": {
+          "type": "object",
+          "properties": {
+            "dividendAdjusted": {
+              "type": "boolean",
+              "description": ""
+            },
+            "indicators": {
+              "type": "object",
+              "properties": {
+                "maPeriod": {
+                  "type": "integer",
+                  "description": "",
+                  "minimum": 1,
+                  "maximum": 250
+                },
+                "emaPeriod": {
+                  "type": "integer",
+                  "description": "",
+                  "minimum": 1,
+                  "maximum": 250
+                },
+                "bollPeriod": {
+                  "type": "integer",
+                  "description": "",
+                  "minimum": 2,
+                  "maximum": 250
+                },
+                "bollWidth": {
+                  "type": "number",
+                  "description": "",
+                  "minimum": 0.5,
+                  "maximum": 5
+                },
+                "macdFast": {
+                  "type": "integer",
+                  "description": "",
+                  "minimum": 1,
+                  "maximum": 250
+                },
+                "macdSlow": {
+                  "type": "integer",
+                  "description": "",
+                  "minimum": 2,
+                  "maximum": 251
+                },
+                "macdSignal": {
+                  "type": "integer",
+                  "description": "",
+                  "minimum": 1,
+                  "maximum": 250
+                },
+                "rsiPeriod": {
+                  "type": "integer",
+                  "description": "",
+                  "minimum": 1,
+                  "maximum": 250
+                },
+                "kdjPeriod": {
+                  "type": "integer",
+                  "description": "",
+                  "minimum": 1,
+                  "maximum": 250
+                },
+                "kdjM1": {
+                  "type": "integer",
+                  "description": "",
+                  "minimum": 1,
+                  "maximum": 250
+                },
+                "kdjM2": {
+                  "type": "integer",
+                  "description": "",
+                  "minimum": 1,
+                  "maximum": 250
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [],
+          "additionalProperties": false,
+          "description": "charts argument for update_preferences; observe this field's schema type, bounds and operation semantics."
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "compactColumns": {
+              "type": "boolean",
+              "description": ""
+            }
+          },
+          "required": [],
+          "additionalProperties": false,
+          "description": "options argument for update_preferences; observe this field's schema type, bounds and operation semantics."
+        },
+        "network": {
+          "type": "object",
+          "properties": {
+            "proxyMode": {
+              "type": "string",
+              "description": "Uses existing local proxy configuration; restart MCP to apply",
+              "enum": [
+                "System",
+                "AutoDetect",
+                "Manual",
+                "Direct"
+              ],
+              "maxLength": 200
+            },
+            "requestTimeoutSeconds": {
+              "type": "integer",
+              "description": "",
+              "minimum": 3,
+              "maximum": 120
+            },
+            "maxRetries": {
+              "type": "integer",
+              "description": "",
+              "minimum": 0,
+              "maximum": 5
+            }
+          },
+          "required": [],
+          "additionalProperties": false,
+          "description": "network argument for update_preferences; observe this field's schema type, bounds and operation semantics."
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_settings",
+    "description": "Read non-secret preferences and resolved data directory; proxy credentials/URLs are omitted.",
+    "writes": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+]

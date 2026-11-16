@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using H.NotifyIcon;
+using Meili.Core.Quotes;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Meili.Core.Alerts;
 using Meili.Core.Settings;
@@ -21,17 +22,20 @@ public sealed class NotificationService : IAlertNotifier, IDisposable
     private readonly AppLaunchOptions _options;
     private readonly DataDirectoryInfo _dataDir;
     private readonly NavigationHub _nav;
+    private readonly QuoteHub _quotes;private readonly SymbolContext _symbols;private readonly string _quoteOwner="windows-tray-"+Guid.NewGuid();
     private TaskbarIcon? _tray;
+    private Meili.App.Views.QuotePanelWindow? _quotePanel;
     private bool _disposed;
 
     public event EventHandler? ExitRequested;
+    public bool HasTrayIcon=>_tray is not null;
 
-    public NotificationService(LocalizationService loc, AppLaunchOptions options, DataDirectoryInfo dataDir, NavigationHub nav)
+    public NotificationService(LocalizationService loc, AppLaunchOptions options, DataDirectoryInfo dataDir, NavigationHub nav, QuoteHub quotes, SymbolContext symbols)
     {
         _loc = loc;
         _options = options;
         _dataDir = dataDir;
-        _nav = nav;
+        _nav = nav;_quotes=quotes;_symbols=symbols;
         _loc.LanguageChanged += (_, _) => UpdateTooltip();
         // --no-alerts (UI checks, tests) must not touch the toast COM/AUMID registration at all.
         if (!_options.NoAlerts)
@@ -49,11 +53,12 @@ public sealed class NotificationService : IAlertNotifier, IDisposable
             _tray = new TaskbarIcon
             {
                 ToolTipText = _loc["App_Title"],
-                IconSource = new BitmapImage(new Uri("pack://application:,,,/Assets/app.ico")),
+                IconSource = new BitmapImage(new Uri("pack://application:,,,/MeiliTerminal;component/Assets/app.ico")),
                 ContextMenu = BuildMenu(),
                 NoLeftClickDelay = true,
             };
-            _tray.TrayLeftMouseUp += (_, _) => Restore(window);
+            _tray.TrayLeftMouseUp += async (_, _) => await ShowQuotePanelAsync();
+            _quotes.Updated+=OnQuoteBatch;_symbols.Changed+=OnQuoteSymbol;OnQuoteSymbol(null,_symbols.Current??"SPY");
         }
         catch (Exception ex)
         {
@@ -61,12 +66,26 @@ public sealed class NotificationService : IAlertNotifier, IDisposable
         }
     }
 
+    private void OnQuoteBatch(object? sender,QuoteBatch batch)=>Ui.Platform.Run(UpdateTooltip);
+    private void OnQuoteSymbol(object? sender,string symbol)
+    {
+        if(_disposed)return;_quotes.Subscribe(_quoteOwner,[symbol]);UpdateTooltip();_ = RefreshTrayAsync(symbol);
+    }
+    private async Task RefreshTrayAsync(string symbol){try{await _quotes.GetQuotesAsync([symbol]);}catch(Exception ex){Log(ex);}}
+    public async Task ShowQuotePanelAsync()
+    {
+        if(_disposed)return;
+        _quotePanel??=new Meili.App.Views.QuotePanelWindow(AppServices.Get<QuotePanelViewModel>(),symbol=>{Restore();_nav.Go(AppPage.Charts,symbol);},()=>{Restore();_nav.Go(AppPage.Watchlist);},()=>{if(ExitRequested is not null)ExitRequested.Invoke(this,EventArgs.Empty);else Application.Current?.Shutdown();});
+        if(_quotePanel.IsVisible){_quotePanel.HidePanel();return;}
+        await _quotePanel.ShowPanelAsync();
+    }
     public void UpdateTooltip()
     {
         if (_tray is null) return;
         try
         {
-            _tray.ToolTipText = _loc["App_Title"];
+            var symbol=_symbols.Current??"SPY";
+            _tray.ToolTipText=_quotes.TryGetCached(symbol,out var q)?symbol+" "+(double.IsFinite(q.Price)?Meili.Core.Models.NumberDisplay.Price(q.Price):"—")+" "+QuoteMovement.Percent(QuoteMovement.Values(q).Percent)+"\n"+FreshnessText.SourceAndTiming(q,_loc,DateTimeOffset.UtcNow)+"\n"+FreshnessText.AsOf(q.AsOf,_loc):_loc["App_Title"];
             if (_tray.ContextMenu is not null)
                 _tray.ContextMenu = BuildMenu();
         }
@@ -169,6 +188,8 @@ public sealed class NotificationService : IAlertNotifier, IDisposable
         {
             try { ToastNotificationManagerCompat.OnActivated -= OnToastActivated; } catch (Exception ex) { Log(ex); }
         }
+        _quotes.Unsubscribe(_quoteOwner);_quotes.Updated-=OnQuoteBatch;_symbols.Changed-=OnQuoteSymbol;
+        _quotePanel?.Close();_quotePanel=null;
         try { _tray?.Dispose(); } catch (Exception ex) { Log(ex); }
         _tray = null;
     }
@@ -183,7 +204,9 @@ public sealed class NotificationService : IAlertNotifier, IDisposable
             if (ExitRequested is not null) ExitRequested.Invoke(this, EventArgs.Empty);
             else Application.Current?.Shutdown();
         };
-        return new ContextMenu { Items = { show, exit }, FontSize = 14 };
+        var quotes=new MenuItem{Header=_loc["QP_Title"],FontSize=14};quotes.Click+=async(_,_)=>await ShowQuotePanelAsync();
+        var background=new MenuItem{Header=_loc["Bg_Run"],FontSize=14};background.Click+=(_,_)=>{if(Application.Current?.MainWindow is Meili.App.MainWindow main)main.RunInBackground();};
+        return new ContextMenu { Items = { quotes, show, background, exit }, FontSize = 14 };
     }
 
     private void OnToastActivated(ToastNotificationActivatedEventArgsCompat e)

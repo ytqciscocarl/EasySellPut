@@ -1,7 +1,10 @@
 ﻿# Dot-source this: . C:\tyuStockApp\tools\env.ps1
 $root = Split-Path -Parent $PSScriptRoot
-$env:DOTNET_ROOT = Join-Path $root 'tools\dotnet'
-$env:PATH = "$env:DOTNET_ROOT;$env:PATH"
+$localSdk = Join-Path $root 'tools\dotnet'
+if (Test-Path (Join-Path $localSdk 'dotnet.exe')) {
+    $env:DOTNET_ROOT = $localSdk
+    $env:PATH = "$env:DOTNET_ROOT;$env:PATH"
+}
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
 $env:DOTNET_NOLOGO = '1'
 $env:DOTNET_CLI_HOME = Join-Path $root 'tools\.dotnet-home'

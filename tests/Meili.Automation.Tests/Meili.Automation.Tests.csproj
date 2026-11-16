@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" /><PackageReference Include="xunit" /><PackageReference Include="xunit.runner.visualstudio" />
+    <ProjectReference Include="../../src/Meili.Application/Meili.Application.csproj" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup><EmbeddedResource Include="Fixtures/previous-skill.md" LogicalName="EasySellPut.Tests.PreviousSkill" /></ItemGroup>
+</Project>

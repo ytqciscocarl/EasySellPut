@@ -110,6 +110,8 @@ public partial class DashboardViewModel : ObservableObject
         UpdateStatus();
     }
 
+    [RelayCommand] private void OpenChart(string? symbol){if(!string.IsNullOrWhiteSpace(symbol))_nav.Go(AppPage.Charts,symbol);}
+
     [RelayCommand]
     private void OpenDataSources() => _nav.Go(AppPage.DataSources);
 
@@ -211,20 +213,22 @@ public partial class QuoteCardViewModel(string symbol) : ObservableObject
         StaleTip = tip ?? "";
     }
 
+    public string ChartActionLabel => string.Format(LocalizationService.Current["UX_OpenChartFor"],Symbol);
     public void Relabel(LocalizationService loc)
     {
+        OnPropertyChanged(nameof(ChartActionLabel));
         if (_quote is not { } q) return;
         var inv = CultureInfo.InvariantCulture;
         Name = q.Name ?? "";
         PriceText = NumberDisplay.Price(q.Price);
-        var chg = q.Change ?? (q.PreviousClose is { } pc ? q.Price - pc : 0);
-        var pct = q.ChangePercent ?? (q.PreviousClose is > 0 ? chg / q.PreviousClose.Value * 100 : 0);
-        ChangeText = $"{NumberDisplay.SignedChange(chg, q.Price)}  {pct.ToString("+0.00;-0.00;0.00", inv)}%";
-        var up = chg >= 0;
-        ChangeBrush = Ui.Platform.Resource(up ? "UpBrush" : "DownBrush");
-        ChangeBackground = Ui.Platform.Resource(up ? "UpBackgroundBrush" : "DownBackgroundBrush");
+        var (chg,pct)=QuoteMovement.Values(q);
+        ChangeText = $"{(chg is { } c?NumberDisplay.SignedChange(c,q.Price):"—")}  {QuoteMovement.Percent(pct)}";
+        var movement=chg??pct;
+        var up=movement is >=0;
+        ChangeBrush = Ui.Platform.Resource(movement is null?"UnknownBrush":up?"UpBrush":"DownBrush");
+        ChangeBackground = Ui.Platform.Resource(movement is null?"ControlFillColorSecondaryBrush":up?"UpBackgroundBrush":"DownBackgroundBrush");
         ExtText = q.ExtendedPrice is { } ep
-            ? $"{loc[q.MarketState == MarketState.PreMarket ? "Quote_Pre" : "Quote_Post"]}  {NumberDisplay.Price(ep)}  {(q.ExtendedChangePercent ?? 0).ToString("+0.00;-0.00;0.00", inv)}%"
+            ? $"{loc[q.MarketState == MarketState.PreMarket ? "Quote_Pre" : "Quote_Post"]}  {NumberDisplay.Price(ep)}  {QuoteMovement.Percent(q.ExtendedChangePercent)}"
             : "";
         var now = DateTimeOffset.Now;
         SourceText = FreshnessText.SourceAndTiming(q, loc, now);

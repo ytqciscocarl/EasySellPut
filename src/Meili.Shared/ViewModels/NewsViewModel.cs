@@ -151,7 +151,10 @@ public partial class NewsViewModel : ObservableObject
     [RelayCommand]
     private void OpenArticle(NewsEntry? item)
     {
-        if (item is not null && !TryOpenUrl(item.Url)) StatusText = _loc["Nf_OpenFailed"];
+        if (item is null) return;
+        if (!NewsReaderPolicy.IsAllowed(item.Url)) { StatusText = _loc["Reader_Blocked"]; return; }
+        try { Ui.Platform.OpenNewsArticle(item.Url, item.Title); }
+        catch (Exception ex) { AppLog.Warn("news", "Could not open news reader", ex); StatusText = _loc["Reader_Failed"]; }
     }
 
     [RelayCommand]

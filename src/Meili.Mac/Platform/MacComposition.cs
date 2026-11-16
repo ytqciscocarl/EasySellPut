@@ -9,7 +9,7 @@ public static class MacComposition
     public static void Register(IServiceCollection s, DataDirectoryInfo dataDir)
     {
         Ui.Platform = new MacUiPlatform();
-        ChartPainter.FontName = "PingFang SC";   // CJK glyphs in chart titles and labels
+        ChartPainter.FontName = OperatingSystem.IsMacOS() ? "PingFang SC" : "Noto Sans CJK SC";   // CJK glyphs in chart titles and labels
         SharedComposition.Register(s, dataDir, MacStrings.Attach(new LocalizationService()));
         s.AddSingleton<MacTheme>();
         s.AddSingleton<IThemeController>(sp => sp.GetRequiredService<MacTheme>());

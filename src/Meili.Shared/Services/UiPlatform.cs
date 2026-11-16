@@ -22,9 +22,15 @@ public interface IUiPlatform
 
     Task<bool> ConfirmAsync(string title, string message);
 
+    void ExitForUpdate() => throw new NotSupportedException("Application shutdown is unavailable.");
+
     void OpenUrl(string url);
 
+    void OpenNewsArticle(string url, string title);
+
     void OpenFolder(string path);
+
+    Task CopyTextAsync(string text) => Task.FromException(new NotSupportedException("Clipboard unavailable"));
 
     /// <summary>Native save dialog offering .xlsx and .csv. Null when the user cancels.</summary>
     Task<string?> PickSavePathAsync(string title, string suggestedName);

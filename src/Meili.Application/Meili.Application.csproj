@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Meili.Core/Meili.Core.csproj" />
+    <ProjectReference Include="../Meili.Data/Meili.Data.csproj" />
+    <ProjectReference Include="../Meili.Analytics/Meili.Analytics.csproj" />
+  </ItemGroup>
+  <ItemGroup><EmbeddedResource Include="../../skills/easysellput-local/SKILL.md" LogicalName="EasySellPut.Skill" /></ItemGroup>
+  <ItemGroup><EmbeddedResource Include="Updates/update-public-key.pem" LogicalName="EasySellPut.UpdatePublicKey" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Meili.Automation.Tests" /></ItemGroup>
+  <!-- Build-time only. Never read repository or trust overrides from the installed process environment. -->
+  <PropertyGroup>
+    <UpdateRepository Condition="'$(UpdateRepository)' == '' and '$(GITHUB_ACTIONS)' == 'true'">$(GITHUB_REPOSITORY)</UpdateRepository>
+  </PropertyGroup>
+  <ItemGroup><AssemblyMetadata Include="EasySellPut.UpdateRepository" Value="$(UpdateRepository)" /></ItemGroup>
+  <Target Name="ValidateUpdateRepository" BeforeTargets="GenerateAssemblyInfo">
+    <Error Condition="'$(UpdateRepository)' != '' and !$([System.Text.RegularExpressions.Regex]::IsMatch('$(UpdateRepository)', '^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9_.-]{1,100}$'))" Text="UpdateRepository must be a GitHub owner/repository." />
+    <Error Condition="'$(GITHUB_ACTIONS)' == 'true' and ('$(UpdateRepository)' == '' or '$(UpdateRepository)' != '$(GITHUB_REPOSITORY)')" Text="CI update source must match GITHUB_REPOSITORY." />
+  </Target>
+</Project>

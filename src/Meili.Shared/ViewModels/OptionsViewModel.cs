@@ -45,6 +45,7 @@ public partial class OptionsViewModel : ObservableObject
     public ObservableCollection<OptionStrikeRow> Rows { get; } = [];
     public List<IvSmilePoint> SmilePoints { get; private set; } = [];
 
+    public bool HasSelectedRow => SelectedRow is not null;
     [ObservableProperty] public partial string SymbolText { get; set; } = "";
     [ObservableProperty] public partial ExpirationChoice? SelectedExpiration { get; set; }
     [ObservableProperty] public partial StrikeWindowKind Window { get; set; } = StrikeWindowKind.Near10;
@@ -79,7 +80,7 @@ public partial class OptionsViewModel : ObservableObject
     [ObservableProperty] public partial double? Spot { get; set; }
     [ObservableProperty] public partial bool HasRows { get; set; }
     [ObservableProperty] public partial OptionStrikeRow? AtmRow { get; set; }
-    [ObservableProperty] public partial OptionStrikeRow? SelectedRow { get; set; }
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasSelectedRow))] public partial OptionStrikeRow? SelectedRow { get; set; }
 
     public event EventHandler? TableChanged;
     private readonly SettingsStore _settings;
@@ -261,7 +262,8 @@ public partial class OptionsViewModel : ObservableObject
         if (!refreshOnly || Rows.Count == 0) StatusText = _loc["Op_Loading"];
         _cts?.Cancel();
         _cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-        var ct = _cts.Token;
+        var request = _cts;
+        var ct = request.Token;
         try
         {
             // A different symbol's expiration list does not apply: start from its nearest expiry.
@@ -270,9 +272,11 @@ public partial class OptionsViewModel : ObservableObject
             var quoteTask = SafeQuotes(symbol, ct);
             var pricingTask = _pricing.ForAsync(symbol, "options", ct);
             var chain = await chainTask;
+            ct.ThrowIfCancellationRequested();
             _loadedSymbol = symbol;
             _lastChain = chain;
             var quotes = await quoteTask;
+            ct.ThrowIfCancellationRequested();
             var q = quotes.FirstOrDefault(x => x.Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase));
             // F8: the chain's own underlying price (same moment as the option quotes) drives IV/Greeks.
             var underlying = UnderlyingText.Describe(chain, q, _loc, DateTimeOffset.Now);
@@ -290,11 +294,14 @@ public partial class OptionsViewModel : ObservableObject
             }
             finally { _suppressExpChange = false; }
 
-            _inputs = await pricingTask;
+            var inputs = await pricingTask;
+            ct.ThrowIfCancellationRequested();
+            _inputs = inputs;
             ModelText = PricingText.Model(_inputs.Rate, _loc);
             var settings = _inputs.Enrichment(DateTimeOffset.Now, chain);
             var usedLocal = false;
             var prevOi = await OpenInterestBeforeAsync(symbol, chain);
+            ct.ThrowIfCancellationRequested();
             var calls = new Dictionary<double, EnrichedSide>();
             var puts = new Dictionary<double, EnrichedSide>();
             foreach (var c in chain.Contracts)
@@ -335,16 +342,23 @@ public partial class OptionsViewModel : ObservableObject
             RelabelHeader();
             if (!refreshOnly) _ = LoadInsightsAsync(symbol, chain.Expirations, spot, ct);
         }
+        catch (Exception ex) when (!ReferenceEquals(_cts, request))
+        {
+            if (ex is not OperationCanceledException) AppLog.Warn("options", "superseded load failed", ex);
+        }
         catch (AllSourcesFailedException) { Fail(_loc["Op_AllFailed"], refreshOnly); }
         catch (OperationCanceledException) when (_active && !refreshOnly) { Fail(_loc["Op_Timeout"], refreshOnly); }
         catch (OperationCanceledException) { }
         catch (Exception ex) { AppLog.Warn("options", "load failed", ex); Fail(ex.Message, refreshOnly); }
         finally
         {
-            IsBusy = false;
-            if (_active) _timer.Start();
-            UpdateStatus();
-            TableChanged?.Invoke(this, EventArgs.Empty);
+            if (ReferenceEquals(_cts, request))
+            {
+                IsBusy = false;
+                if (_active) _timer.Start();
+                UpdateStatus();
+                TableChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 
@@ -519,13 +533,8 @@ public sealed class EnrichedSide
     public const double WideSpreadMinAbs = 0.05;
 
     public static (double? Spread, double? Pct, bool Wide) SpreadOf(double? bid, double? ask)
-    {
-        if (bid is not > 0 || ask is not > 0 || ask < bid) return (null, null, false);
-        var spread = ask.Value - bid.Value;
-        var mid = (ask.Value + bid.Value) / 2;
-        var pct = spread / mid;
-        return (spread, pct, pct > WideSpreadPct && spread > WideSpreadMinAbs);
-    }
+        => Meili.Automation.OptionQuoteMetrics.SpreadOf(bid,ask);
+
     public bool InTheMoney { get; init; }
     public bool IvLocal { get; init; }
     public string IvHint { get; init; } = "";

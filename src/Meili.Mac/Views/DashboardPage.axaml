@@ -1,5 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lucide="using:Meili.Mac.Views.Controls"
+    xmlns:ds="using:Meili.Mac.Views.Controls"
+    xmlns:ux="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:sp="using:ScottPlot.Avalonia"
              xmlns:local="using:Meili.Mac.Views"
@@ -8,64 +11,20 @@
     <ScrollViewer Classes="PageScroller">
         <StackPanel MaxWidth="1200">
             <TextBlock Classes="PageTitle" Text="{DynamicResource Nav_Dashboard}" />
-            <TextBlock Classes="Secondary" Text="{DynamicResource App_Subtitle}" Margin="0,0,0,16" />
+
 
             <!-- Hero -->
-            <Border Classes="Card" Padding="24">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Image Source="avares://MeiliMac/Assets/app-64.png" Width="56" Height="56" Margin="0,0,20,0" VerticalAlignment="Top" />
-                    <StackPanel Grid.Column="1">
-                        <TextBlock Classes="CardTitle" FontSize="20" Text="{DynamicResource Dash_Welcome}" />
-                        <TextBlock Classes="Secondary" Margin="0,6,0,0" Text="{DynamicResource Dash_WelcomeBody}" />
-                    </StackPanel>
-                </Grid>
-            </Border>
+
 
             <!-- D7: getting started (network/proxy, watchlist, options) until dismissed -->
-            <Border Classes="Card" Padding="20" Margin="0,12,0,0" IsVisible="{Binding ShowGuide}"
-                     AutomationProperties.AutomationId="DashGuide">
-                <StackPanel>
-                <DockPanel Margin="0,0,0,12" LastChildFill="False">
-                    <TextBlock DockPanel.Dock="Left" Classes="SectionTitle" Margin="0" VerticalAlignment="Center" Text="{DynamicResource Dash_GuideTitle}" />
-                    <Button DockPanel.Dock="Right" Classes="Subtle" Padding="10,4" Command="{Binding DismissGuideCommand}" Content="{DynamicResource Dash_GuideDismiss}" />
-                </DockPanel>
-                <UniformGrid Columns="3">
-                    <StackPanel Margin="0,0,16,0" AutomationProperties.AutomationId="GuideNetwork">
-                        <TextBlock Classes="CardTitle" FontSize="15" Text="{DynamicResource Dash_Guide1Title}" />
-                        <TextBlock Classes="Secondary" Margin="0,6,0,8" TextWrapping="Wrap" Text="{Binding GuideNetworkText}" />
-                        <WrapPanel>
-                            <Button Padding="10,4" Margin="0,0,8,4" Command="{Binding RedetectProxyCommand}" Content="{DynamicResource Dash_Redetect}" />
-                            <Button Padding="10,4" Margin="0,0,8,4" Command="{Binding OpenDataSourcesCommand}" Content="{DynamicResource Dash_OpenSources}" />
-                        </WrapPanel>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,0" AutomationProperties.AutomationId="GuideWatchlist">
-                        <TextBlock Classes="CardTitle" FontSize="15" Text="{DynamicResource Dash_Guide2Title}" />
-                        <TextBlock Classes="Secondary" Margin="0,6,0,8" TextWrapping="Wrap" Text="{DynamicResource Dash_Guide2Body}" />
-                        <WrapPanel>
-                            <Button Padding="10,4" Margin="0,0,8,4" Command="{Binding OpenWatchlistCommand}" Content="{DynamicResource Dash_Guide2Btn}" />
-                        </WrapPanel>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,0" AutomationProperties.AutomationId="GuideOptions">
-                        <TextBlock Classes="CardTitle" FontSize="15" Text="{DynamicResource Dash_Guide3Title}" />
-                        <TextBlock Classes="Secondary" Margin="0,6,0,8" TextWrapping="Wrap" Text="{DynamicResource Dash_Guide3Body}" />
-                        <WrapPanel>
-                            <Button Padding="10,4" Margin="0,0,8,4" Command="{Binding OpenOptionsCommand}" Content="{DynamicResource Dash_Guide3Btn}" />
-                        </WrapPanel>
-                    </StackPanel>
-                </UniformGrid>
-                </StackPanel>
-            </Border>
+            <ds:AppCard Classes="Card" Padding="12" Margin="0,12,0,0" IsVisible="{Binding ShowGuide}" AutomationProperties.AutomationId="DashGuide"><DockPanel LastChildFill="True"><Button DockPanel.Dock="Right" Classes="Subtle" Command="{Binding DismissGuideCommand}" Content="{DynamicResource Dash_GuideDismiss}" Margin="12,0,0,0"/><WrapPanel><TextBlock Classes="Caption" Text="{DynamicResource UX_QuickStart}" VerticalAlignment="Center" Margin="0,0,12,0"/><Button Command="{Binding OpenWatchlistCommand}" Content="{DynamicResource Dash_Guide2Btn}" Margin="0,0,8,0"/><Button Command="{Binding OpenOptionsCommand}" Content="{DynamicResource Dash_Guide3Btn}" Margin="0,0,8,0"/><Button Command="{Binding OpenDataSourcesCommand}" Content="{DynamicResource Dash_OpenSources}" Margin="0,0,8,0"/></WrapPanel></DockPanel></ds:AppCard>
 
             <!-- Market overview (quotes via failover) -->
             <DockPanel Margin="0,24,0,8" LastChildFill="False">
                 <TextBlock DockPanel.Dock="Left" Classes="SectionTitle" Margin="0" VerticalAlignment="Center" Text="{DynamicResource Dash_Market}" />
-                <Button DockPanel.Dock="Right" Command="{Binding RefreshCommand}" Padding="12,6">
+                <Button DockPanel.Dock="Right" Command="{Binding RefreshCommand}" Padding="12,6" IsEnabled="{Binding !IsBusy}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="↻" Margin="0,0,6,0" />
+                        <lucide:LucideIcon Kind="Refresh"  Margin="0,0,6,0" />
                         <TextBlock Text="{DynamicResource Dash_Refresh}" />
                     </StackPanel>
                 </Button>
@@ -93,7 +52,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:QuoteCardViewModel">
-                        <Border Classes="Card" Margin="0,0,8,8" Padding="18,14">
+                        <ds:AppCard Classes="Card" Margin="0,0,8,8" Padding="18,14">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -102,7 +61,7 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
                                 <DockPanel LastChildFill="False">
-                                    <TextBlock DockPanel.Dock="Left" Text="{Binding Symbol}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    <Button DockPanel.Dock="Right" Width="28" Height="28" MinWidth="28" MinHeight="28" Padding="0" Margin="6,0,0,0" Command="{Binding $parent[UserControl].((vm:DashboardViewModel)DataContext).OpenChartCommand}" CommandParameter="{Binding Symbol}" AutomationProperties.Name="{Binding ChartActionLabel}" ToolTip.Tip="{Binding ChartActionLabel}"><ux:LucideIcon Kind="Charts" Width="16" Height="16"/></Button><TextBlock DockPanel.Dock="Left" Text="{Binding Symbol}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                     <Border DockPanel.Dock="Right" CornerRadius="4" Padding="6,1" Background="{DynamicResource ControlFillColorSecondaryBrush}"
                                             ToolTip.Tip="{Binding TimingTip}">
                                         <TextBlock Classes="Caption" Text="{Binding SourceText}" />
@@ -110,9 +69,9 @@
                                 </DockPanel>
                                 <TextBlock Grid.Row="1" Classes="Caption" Text="{Binding Name}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,2,0,8" />
                                 <StackPanel Grid.Row="2" Orientation="Horizontal">
-                                    <TextBlock Text="{Binding PriceText}" FontFamily="{StaticResource NumberFont}" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    <TextBlock Text="{Binding PriceText}" FontFamily="{DynamicResource NumberFont}" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                     <Border Margin="12,0,0,0" VerticalAlignment="Center" CornerRadius="4" Padding="8,2" Background="{Binding ChangeBackground}">
-                                        <TextBlock Text="{Binding ChangeText}" FontFamily="{StaticResource NumberFont}" FontSize="14" FontWeight="SemiBold" Foreground="{Binding ChangeBrush}" />
+                                        <TextBlock Text="{Binding ChangeText}" FontFamily="{DynamicResource NumberFont}" FontSize="14" FontWeight="SemiBold" Foreground="{Binding ChangeBrush}" />
                                     </Border>
                                     <Border Margin="8,0,0,0" VerticalAlignment="Center" CornerRadius="4" Padding="6,1" Background="{DynamicResource StaleBadgeBrush}"
                                             IsVisible="{Binding IsStale}" ToolTip.Tip="{Binding StaleTip}"
@@ -125,7 +84,7 @@
                                     <TextBlock Classes="Caption" Text="{Binding AsOfText}" ToolTip.Tip="{Binding TimingTip}" />
                                 </StackPanel>
                             </Grid>
-                        </Border>
+                        </ds:AppCard>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

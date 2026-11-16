@@ -37,6 +37,7 @@ public partial class WatchlistViewModel : ObservableObject
     public ObservableCollection<WatchlistRowViewModel> Rows { get; } = [];
     public ObservableCollection<SymbolMatch> Suggestions { get; } = [];
 
+    public bool HasSelectedRow => SelectedRow is not null;
     [ObservableProperty] public partial string SelectedGroupId { get; set; } = WatchlistGroup.DefaultId;
     [ObservableProperty] public partial string Query { get; set; } = "";
     [ObservableProperty] public partial string GroupNameDraft { get; set; } = "";
@@ -46,7 +47,7 @@ public partial class WatchlistViewModel : ObservableObject
     [ObservableProperty] public partial bool ShowSuggestions { get; set; }
     [ObservableProperty] public partial bool ShowSearchEmpty { get; set; }
     [ObservableProperty] public partial string StatusText { get; set; } = "";
-    [ObservableProperty] public partial WatchlistRowViewModel? SelectedRow { get; set; }
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasSelectedRow))] public partial WatchlistRowViewModel? SelectedRow { get; set; }
     [ObservableProperty] public partial bool HasRows { get; set; }
 
     public bool CanRemoveGroup => Groups.Count > 1;
@@ -91,7 +92,7 @@ public partial class WatchlistViewModel : ObservableObject
         _active = false;
         _hub.Updated -= OnBatch;
         _hub.Unsubscribe(Owner);
-        _searchDebounce.Stop();
+        _searchDebounce.Stop();_flash.Stop();foreach(var row in Rows)row.IsFlashing=false;
         _refreshCts?.Cancel();
         _searchCts?.Cancel();
     }
@@ -529,17 +530,17 @@ public partial class WatchlistRowViewModel(string symbol) : ObservableObject
         var inv = CultureInfo.InvariantCulture;
         Name = q.Name ?? "";
         PriceText = NumberDisplay.Price(q.Price);
-        var chg = q.Change ?? (q.PreviousClose is { } pc ? q.Price - pc : 0);
-        var pct = q.ChangePercent ?? (q.PreviousClose is > 0 ? chg / q.PreviousClose.Value * 100 : 0);
-        ChangeText = NumberDisplay.SignedChange(chg, q.Price);
-        ChangePctText = pct.ToString("+0.00;-0.00;0.00", inv) + "%";
-        var up = chg >= 0;
-        ChangeBrush = Ui.Platform.Resource(up ? "UpBrush" : "DownBrush");
-        ChangeBackground = Ui.Platform.Resource(up ? "UpBackgroundBrush" : "DownBackgroundBrush");
+        var (chg,pct)=QuoteMovement.Values(q);
+        ChangeText = chg is { } c?NumberDisplay.SignedChange(c,q.Price):"—";
+        ChangePctText = QuoteMovement.Percent(pct);
+        var movement=chg??pct;
+        var up=movement is >=0;
+        ChangeBrush = Ui.Platform.Resource(movement is null?"UnknownBrush":up?"UpBrush":"DownBrush");
+        ChangeBackground = Ui.Platform.Resource(movement is null?"ControlFillColorSecondaryBrush":up?"UpBackgroundBrush":"DownBackgroundBrush");
         ExtText = q.ExtendedPrice is { } ep
-            ? $"{loc[q.MarketState == MarketState.PreMarket ? "Quote_Pre" : "Quote_Post"]}  {NumberDisplay.Price(ep)}  {(q.ExtendedChangePercent ?? 0).ToString("+0.00;-0.00;0.00", inv)}%"
+            ? $"{loc[q.MarketState == MarketState.PreMarket ? "Quote_Pre" : "Quote_Post"]}  {NumberDisplay.Price(ep)}  {QuoteMovement.Percent(q.ExtendedChangePercent)}"
             : "";
-        VolumeText = q.Volume is > 0 ? loc.Amount(q.Volume) : "—";
+        VolumeText = q.Volume is >= 0 ? loc.Amount(q.Volume) : "—";
         var now = DateTimeOffset.Now;
         SourceText = FreshnessText.SourceAndTiming(q, loc, now);
         TimingTip = FreshnessText.Tooltip(q, loc, now);

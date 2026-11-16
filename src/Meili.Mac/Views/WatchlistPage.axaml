@@ -1,5 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lucide="using:Meili.Mac.Views.Controls"
+    xmlns:ux="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:models="using:Meili.Core.Models"
              xmlns:local="using:Meili.Mac.Views"
@@ -7,8 +9,7 @@
              x:DataType="vm:WatchlistViewModel">
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Margin="32,24,32,12">
-            <TextBlock Classes="PageTitle" Text="{DynamicResource Wl_Title}" />
-            <TextBlock Classes="Secondary" Text="{DynamicResource Wl_Desc}" Margin="0,0,0,16" />
+            <ux:AppFormHeader Title="{DynamicResource Wl_Title}" HelpText="{DynamicResource Wl_Desc}" IsPageTitle="True" Margin="0,0,0,12"/>
 
             <!-- Groups -->
             <DockPanel Margin="0,0,0,12" LastChildFill="False">
@@ -43,18 +44,18 @@
                     </MultiBinding>
                 </DockPanel.IsVisible>
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding CancelGroupEditCommand}" Content="{DynamicResource Wl_Cancel}" />
-                <Button DockPanel.Dock="Right" Classes="Accent" Command="{Binding ConfirmGroupEditCommand}" Content="{DynamicResource Wl_Ok}" />
-                <TextBox Text="{Binding GroupNameDraft}" PlaceholderText="{DynamicResource Wl_GroupNameHint}" />
+                <Button DockPanel.Dock="Right" Classes="Primary" Command="{Binding ConfirmGroupEditCommand}" Content="{DynamicResource Wl_Ok}" />
+                <TextBox x:Name="GroupDraftInput" KeyDown="OnGroupDraftKeyDown" Text="{Binding GroupNameDraft}" PlaceholderText="{DynamicResource Wl_GroupNameHint}" />
             </DockPanel>
 
             <!-- Search + actions -->
             <DockPanel Margin="0,0,0,8">
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Content="{DynamicResource Wl_Export}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Wl_Refresh}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding MoveDownCommand}" Content="↓" ToolTip.Tip="{DynamicResource Wl_MoveDown}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding MoveUpCommand}" Content="↑" ToolTip.Tip="{DynamicResource Wl_MoveUp}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RemoveSelectedCommand}" Content="{DynamicResource Wl_Remove}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Accent" Command="{Binding AddCommand}" Content="{DynamicResource Wl_Add}" />
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Wl_Refresh}"  IsEnabled="{Binding !IsBusy}"/>
+                <Button Classes="Icon" DockPanel.Dock="Right" Margin="8,0,0,0" IsEnabled="{Binding HasSelectedRow}" Command="{Binding MoveDownCommand}" ToolTip.Tip="{DynamicResource Wl_MoveDown}" ><lucide:LucideIcon Kind="ArrowDown"/></Button>
+                <Button Classes="Icon" DockPanel.Dock="Right" Margin="8,0,0,0" IsEnabled="{Binding HasSelectedRow}" Command="{Binding MoveUpCommand}" ToolTip.Tip="{DynamicResource Wl_MoveUp}" ><lucide:LucideIcon Kind="ArrowUp"/></Button>
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" IsEnabled="{Binding HasSelectedRow}" Command="{Binding RemoveSelectedCommand}" Content="{DynamicResource Wl_Remove}" />
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Primary" Command="{Binding AddCommand}" Content="{DynamicResource Wl_Add}" />
                 <Panel>
                     <TextBox x:Name="QueryBox" Text="{Binding Query}" PlaceholderText="{DynamicResource Wl_SymbolHint}" />
                     <Popup IsOpen="{Binding ShowSuggestions}" PlacementTarget="{Binding #QueryBox}" Placement="BottomEdgeAlignedLeft"
@@ -91,7 +92,7 @@
                     <Button Command="{Binding OpenDataSourcesCommand}" Content="{DynamicResource Dash_OpenSources}" />
                 </StackPanel>
             </Border>
-        </StackPanel>
+        </StackPanel><WrapPanel DockPanel.Dock="Top" Margin="32,8,32,8" IsEnabled="{Binding HasSelectedRow}"><TextBlock Classes="Caption" Text="{DynamicResource UX_SelectedActions}" VerticalAlignment="Center" Margin="0,0,8,0"/><Button Command="{Binding OpenChartCommand}" Content="{DynamicResource Wl_OpenChart}" Margin="0,0,6,0"/><Button Command="{Binding OpenOptionsCommand}" Content="{DynamicResource Wl_OpenOptions}" Margin="0,0,6,0"/><Button Command="{Binding OpenStrategyCommand}" Content="{DynamicResource Wl_OpenStrategy}" Margin="0,0,6,0"/><Button Command="{Binding OpenNewsCommand}" Content="{DynamicResource Wl_OpenNews}" Margin="0,0,6,0"/></WrapPanel>
 
         <TextBlock DockPanel.Dock="Top" Classes="Secondary" Margin="32,24,32,0" Text="{DynamicResource Wl_Empty}" IsVisible="{Binding !HasRows}" />
 

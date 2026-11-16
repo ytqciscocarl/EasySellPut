@@ -7,6 +7,7 @@ namespace Meili.Shared.Services;
 public sealed class AppLaunchOptions
 {
     public bool NoAlerts { get; init; }
+    public bool StartInBackground { get; init; }
     public bool ExitOnClose { get; init; }
     /// <summary>B3: run the built-in self-check, write a report and exit (implies --no-alerts and --exit-on-close).</summary>
     public bool Smoke { get; init; }
@@ -30,6 +31,7 @@ public sealed class AppLaunchOptions
         }
         return new AppLaunchOptions
         {
+            StartInBackground = Has("--background"),
             NoAlerts = smoke || Has("--no-alerts") || Has("--no-notifications"),
             ExitOnClose = smoke || Has("--exit-on-close"),
             Smoke = smoke,

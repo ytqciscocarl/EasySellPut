@@ -47,6 +47,7 @@ public sealed class QuoteHub
     public int RequestCount { get; private set; }
 
     public event EventHandler<QuoteBatch>? Updated;
+    public event EventHandler? SubscriptionsChanged;
 
     public IReadOnlyList<string> SubscribedSymbols
     {
@@ -62,12 +63,14 @@ public sealed class QuoteHub
     {
         var set = new HashSet<string>(symbols.Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim().ToUpperInvariant()),
             StringComparer.OrdinalIgnoreCase);
-        lock (_gate) _subs[owner] = set;
+        lock (_gate){if(_subs.TryGetValue(owner,out var old)&&old.SetEquals(set))return;_subs[owner]=set;}
+        SubscriptionsChanged?.Invoke(this,EventArgs.Empty);
     }
 
     public void Unsubscribe(string owner)
     {
-        lock (_gate) _subs.Remove(owner);
+        lock (_gate){if(!_subs.Remove(owner))return;}
+        SubscriptionsChanged?.Invoke(this,EventArgs.Empty);
     }
 
     public bool TryGetCached(string symbol, out Quote quote)

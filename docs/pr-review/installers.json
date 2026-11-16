@@ -1,0 +1,42 @@
+[
+  {
+    "rid": "osx-arm64",
+    "file": "EasySellPut-Desktop-0.6.0-osx-arm64.zip",
+    "sha256": "486c07f4b70e1cb26412b4b9e2d7658b32cd2dcf0c11ef433c9d83b09bd0ac55",
+    "bytes": 82914711,
+    "artifactUrl": "https://github.com/two4i6/EasySellPut/actions/runs/43754610782/artifacts/14178175704",
+    "source": "045f680",
+    "architectureVerified": true,
+    "expiresAt": "2026-11-29T19:54:07Z"
+  },
+  {
+    "rid": "win-x64",
+    "file": "EasySellPut-Desktop-0.6.0-win-x64.zip",
+    "sha256": "73767fe0d803fcbd1bbe1bbda33f5c8e48271fc1c92a3f14ec2845e45826d2bd",
+    "bytes": 124528825,
+    "artifactUrl": "https://github.com/two4i6/EasySellPut/actions/runs/43754610782/artifacts/14177863583",
+    "source": "045f680",
+    "architectureVerified": true,
+    "expiresAt": "2026-11-29T19:56:18Z"
+  },
+  {
+    "rid": "osx-x64",
+    "file": "EasySellPut-Desktop-0.6.0-osx-x64.zip",
+    "sha256": "4386c290d143833ceb47d90070b15ba11c78598d4e42b859b65ca83b4a064b71",
+    "bytes": 87957065,
+    "artifactUrl": "https://github.com/two4i6/EasySellPut/actions/runs/43754610782/artifacts/14177349917",
+    "source": "045f680",
+    "architectureVerified": true,
+    "expiresAt": "2026-11-29T19:55:38Z"
+  },
+  {
+    "rid": "win-arm64",
+    "file": "EasySellPut-Desktop-0.6.0-win-arm64.zip",
+    "sha256": "1c0f4a75026526479ca3d8b71e14aaccbf3e1d38959baddf40a4fc8f664980e1",
+    "bytes": 117370690,
+    "artifactUrl": "https://github.com/two4i6/EasySellPut/actions/runs/43754610782/artifacts/14177304882",
+    "source": "045f680",
+    "architectureVerified": true,
+    "expiresAt": "2026-11-29T19:55:47Z"
+  }
+]

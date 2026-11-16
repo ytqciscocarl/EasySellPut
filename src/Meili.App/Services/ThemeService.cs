@@ -42,7 +42,7 @@ public sealed class ThemeService : IThemeController
     {
         Mode = mode;
         mainWindow ??= Application.Current.MainWindow;
-        if (_watched is not null) { SystemThemeWatcher.UnWatch(_watched); _watched = null; }
+        ClearWatch();
 
         switch (mode)
         {
@@ -56,9 +56,24 @@ public sealed class ThemeService : IThemeController
                 {
                     SystemThemeWatcher.Watch(mainWindow, Backdrop, true);
                     _watched = mainWindow;
+                    mainWindow.Closing += OnWatchedClosing;
                 }
                 break;
         }
+    }
+
+    private void ClearWatch()
+    {
+        if(_watched is not { } window)return;
+        window.Closing-=OnWatchedClosing;
+        // WPF-UI rejects unloaded handles. Normal close detaches earlier in Closing.
+        if(window.IsLoaded)SystemThemeWatcher.UnWatch(window);
+        _watched=null;
+    }
+    private void OnWatchedClosing(object? sender,System.ComponentModel.CancelEventArgs e)
+    {
+        // MainWindow's close policy runs first: a canceled close still needs its watcher.
+        if(!e.Cancel&&ReferenceEquals(sender,_watched))ClearWatch();
     }
 
     /// <summary>Quick toggle from the title bar: flips to the opposite explicit theme.</summary>

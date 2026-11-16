@@ -1,0 +1,345 @@
+name: CI · Test & Package
+run-name: "CI · ${{ github.head_ref || github.ref_name }} · #${{ github.run_number }}"
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      macos_arm_runner:
+        description: Apple Silicon runner (macOS Intel is always tested separately)
+        type: choice
+        default: macos-26
+        options:
+          - macos-26
+          - macos-15
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+  DOTNET_CLI_UI_LANGUAGE: en
+  NUGET_PACKAGES: ${{ github.workspace }}/tools/nuget-packages
+
+jobs:
+  cli:
+    name: ${{ matrix.label }} · CLI/MCP
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+            label: Linux x64
+          - os: windows-latest
+            rid: win-x64
+            label: Windows x64
+          - os: windows-11-arm
+            rid: win-arm64
+            label: Windows ARM64
+          - os: macos-15-intel
+            rid: osx-x64
+            label: Mac Intel
+          - os: "${{ inputs.macos_arm_runner || 'macos-26' }}"
+            rid: osx-arm64
+            label: Mac Apple Silicon
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build CLI & protocol test host
+        run: |
+          dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Release -m:3 -v minimal
+          if ($LASTEXITCODE -ne 0) { throw 'CLI / protocol host build failed' }
+      - name: Verify compiled update repository and key
+        run: |
+          python tests/automation/check_update_source.py dotnet src/Meili.Cli/bin/Release/net10.0/easysellput.dll
+          if ($LASTEXITCODE -ne 0) { throw 'Compiled updater trust binding failed' }
+      - name: Test upstream, fork and development update binding
+        if: runner.os == 'Linux'
+        run: |
+          python tests/automation/update_source_build_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Update repository build binding failed' }
+      - name: Test shared business logic
+        run: |
+          $failed = $false
+          foreach ($name in @('Core', 'Data', 'Analytics', 'Shared', 'Automation')) {
+            dotnet test "tests/Meili.$name.Tests/Meili.$name.Tests.csproj" -c Release -m:3 --filter 'Category!=Live' --logger "trx;LogFileName=$name.trx" --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true
+            if ($LASTEXITCODE -ne 0) { $failed = $true }
+          }
+          if ($failed) { throw 'Shared or automation tests failed' }
+      - name: Test coverage & validation guards
+        run: |
+          python -m unittest discover -s tests/automation -p "test_*.py" -v
+          if ($LASTEXITCODE -ne 0) { throw 'Capability coverage guard tests failed' }
+      - name: Verify CLI/MCP capability parity
+        run: |
+          python tests/automation/check_capability_coverage.py
+          if ($LASTEXITCODE -ne 0) { throw 'CLI / MCP capability coverage or parity failed' }
+      - name: Test CLI/MCP processes
+        run: |
+          python tests/automation/cli_mcp_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
+          if ($LASTEXITCODE -ne 0) { throw 'Production CLI / MCP process checks failed' }
+      - name: Build & test CLI package
+        run: |
+          $os = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
+          $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+          $rid = "${{ matrix.rid }}"
+          if ("$os-$arch" -ne $rid) { throw "Runner architecture mismatch: $os-$arch, expected $rid" }
+          if ($IsWindows) {
+            powershell.exe -NoProfile -ExecutionPolicy Bypass -File build/pack-cli.ps1 -Runtime $rid -OutputParent build/out/ci/packages
+          } else {
+            bash build/pack-cli.sh $rid build/out/ci/packages
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Native CLI package build failed' }
+          $version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
+          $name = "EasySellPut-CLI-$version-$rid"
+          $extension = if ($IsWindows) { '.zip' } else { '.tar.gz' }
+          $archive = "build/out/ci/packages/$name$extension"
+          $extract = 'build/out/ci/extracted package with spaces'
+          python tests/automation/check_cli_package.py --archive $archive --rid $rid --extract-to $extract
+          if ($LASTEXITCODE -ne 0) { throw 'Distribution verification failed' }
+          $binary = if ($IsWindows) { 'easysellput.exe' } else { 'easysellput' }
+          $executable = Join-Path (Join-Path $extract $name) $binary
+          python tests/automation/cli_mcp_smoke.py --executable $executable
+          if ($LASTEXITCODE -ne 0) { throw 'Extracted CLI / MCP process checks failed' }
+      - name: Upload CLI package
+        uses: actions/upload-artifact@v4
+        with:
+          name: CLI-MCP-${{ matrix.rid }}
+          path: |
+            build/out/ci/packages/*.zip
+            build/out/ci/packages/*.tar.gz
+            build/out/ci/packages/*.sha256
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-${{ matrix.rid }}
+          path: |
+            build/out/ci/tests/**/*.trx
+            build/out/ci/capability-coverage.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  ui:
+    name: UI · Layout & Charts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Install UI test fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-cjk
+      - name: Test layout, themes & update reminders
+        env:
+          FONTCONFIG_FILE: ${{ github.workspace }}/build/ci-fonts.conf
+          MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
+        run: |
+          mkdir -p "$MEILI_RENDER_DIR"
+          dotnet test tests/Meili.Mac.Tests/Meili.Mac.Tests.csproj -c Release -m:3 --blame-crash --blame-crash-dump-type mini --filter 'Category!=Live' --logger 'trx;LogFileName=Mac.trx' --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser test tools
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Build chart test host
+        run: dotnet build tests/Meili.Workbench.Host/Meili.Workbench.Host.csproj -c Release -m:3 -v minimal
+      - name: Test chart interactions
+        env:
+          MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
+        run: |
+          python tests/webcharts/test_renderer.py -v
+          python tests/webcharts/test_workbench.py -v
+          python tests/webcharts/test_timeline.py -v
+          python tests/webcharts/test_sessions.py -v
+          python tests/webcharts/test_drawings.py -v
+      - name: Upload UI screenshots & reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-headless
+          path: |
+            build/out/ci/tests/**/*.trx
+            build/out/ci/tests/**/*_Sequence.xml
+            build/out/ci/tests/**/*.dmp
+            build/out/ci/render/**/*.png
+            build/out/ci/render/**/*.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  desktop:
+    name: ${{ matrix.label }} · Desktop
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            label: Windows x64
+          - os: windows-11-arm
+            rid: win-arm64
+            label: Windows ARM64
+          - os: macos-15-intel
+            rid: osx-x64
+            label: Mac Intel
+          - os: macos-26
+            rid: osx-arm64
+            label: Mac Apple Silicon
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Set Full HD capture desktop
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./build/ci-display.ps1
+      - name: Install WebView2 runtime
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $roots = @(${env:ProgramFiles(x86)}, $env:ProgramFiles) | Where-Object { $_ }
+          $runtime = $roots | ForEach-Object { Get-ChildItem "$_/Microsoft/EdgeWebView/Application/*/msedgewebview2.exe" -ErrorAction SilentlyContinue }
+          if (-not $runtime) {
+            $installer = Join-Path $env:RUNNER_TEMP 'MicrosoftEdgeWebview2Setup.exe'
+            Invoke-WebRequest 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile $installer
+            $signature = Get-AuthenticodeSignature $installer
+            if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { throw 'Invalid WebView2 installer signature' }
+            $process = Start-Process $installer -ArgumentList '/silent', '/install' -Wait -PassThru
+            if ($process.ExitCode -ne 0) { throw "WebView2 installation failed: $($process.ExitCode)" }
+          }
+      - name: Test native WebView
+        shell: pwsh
+        run: |
+          dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
+          if ($LASTEXITCODE -ne 0) { throw 'Native news reader smoke failed' }
+
+      - name: Test Windows desktop & update reminders
+        if: runner.os == 'Windows'
+        env:
+          MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/desktop-render
+        shell: pwsh
+        run: |
+          dotnet test tests/Meili.App.Tests/Meili.App.Tests.csproj -c Release -m:3 --filter 'Category!=Live' --logger 'trx;LogFileName=Windows.trx' --results-directory build/out/ci/tests -- RunConfiguration.TreatNoTestsAsError=true
+          if ($LASTEXITCODE -ne 0) { throw 'Windows desktop regression failed' }
+
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build desktop package
+        shell: pwsh
+        run: |
+          python -m pip install pillow==11.3.0
+          if ($LASTEXITCODE -ne 0) { throw 'Icon tooling installation failed' }
+          $os = if ($IsWindows) { 'win' } else { 'osx' }
+          $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+          python build/pack-desktop.py --rid "$os-$arch" --output build/out/ci/desktop
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop packaging failed' }
+      - name: Test packaged app & updater
+        shell: pwsh
+        run: |
+          $os = if ($IsWindows) { 'win' } else { 'osx' }
+          $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+          $archive = (Get-ChildItem build/out/ci/desktop/*.zip | Select-Object -First 1).FullName
+          python tests/automation/check_desktop_package.py --archive $archive --rid "$os-$arch" --extract-to 'build/out/ci/desktop extracted with spaces'
+          if ($LASTEXITCODE -ne 0) { throw 'Extracted desktop verification failed' }
+      - name: Upload desktop package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Desktop-${{ matrix.os }}
+          path: |
+            build/out/ci/desktop/*.zip
+            build/out/ci/desktop/*.sha256
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload desktop test reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-package-evidence-${{ matrix.os }}
+          path: |
+            build/out/ci/desktop-smoke*
+            build/out/ci/desktop-render/**/*.png
+            build/out/ci/desktop-render/**/*.json
+            build/out/ci/tests/**/*.trx
+          if-no-files-found: warn
+          retention-days: 14
+
+  release-policy:
+    name: Release · main guard
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test main-only release rules
+        run: |
+          python3 -m pip install PyYAML==6.0.3
+          python3 build/release/check-workflows.py
+          python3 -m unittest discover -s tests/automation -p 'test_release_policy.py' -v
+
+  required:
+    name: CI · Required checks
+    if: always()
+    needs: [cli, ui, desktop, release-policy]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every CI job to pass
+        env:
+          CLI_RESULT: ${{ needs.cli.result }}
+          UI_RESULT: ${{ needs.ui.result }}
+          DESKTOP_RESULT: ${{ needs.desktop.result }}
+          RELEASE_POLICY_RESULT: ${{ needs.release-policy.result }}
+        run: |
+          test "$CLI_RESULT" = success
+          test "$UI_RESULT" = success
+          test "$DESKTOP_RESULT" = success
+          test "$RELEASE_POLICY_RESULT" = success

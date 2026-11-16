@@ -5,66 +5,14 @@
              Name="EasySellPut">
     <Application.Resources>
         <ResourceDictionary>
-            <!-- Typography: nothing in the app is smaller than 12px. PingFang SC carries the Chinese glyphs. -->
-            <FontFamily x:Key="AppFont">.AppleSystemUIFont, PingFang SC</FontFamily>
-            <FontFamily x:Key="NumberFont">.AppleSystemUIFont, PingFang SC</FontFamily>
-            <x:Double x:Key="CaptionFontSize">12</x:Double>
-            <x:Double x:Key="BodyFontSize">14</x:Double>
-            <x:Double x:Key="SubtitleFontSize">16</x:Double>
-            <x:Double x:Key="TitleFontSize">20</x:Double>
-            <x:Double x:Key="DisplayFontSize">28</x:Double>
-            <!-- Same resource names as the Windows build, so page markup reads the same on both. -->
-            <ResourceDictionary.ThemeDictionaries>
-                <!-- Design-time / first frame; MacTheme overwrites the same keys from ThemePalette at runtime. -->
-                <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#F4EDDF" />
-                    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#EDE4D4" />
-                    <SolidColorBrush x:Key="CardBackgroundFillColorDefaultBrush" Color="#F9F4EA" />
-                    <SolidColorBrush x:Key="SolidBackgroundFillColorBaseBrush" Color="#F4EDDF" />
-                    <SolidColorBrush x:Key="SolidBackgroundFillColorSecondaryBrush" Color="#F9F4EA" />
-                    <SolidColorBrush x:Key="LayerFillColorDefaultBrush" Color="#F4EDDF" />
-                    <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="#FBF7F0" />
-                    <SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Color="#FBF7F0" />
-                    <SolidColorBrush x:Key="ControlStrokeColorDefaultBrush" Color="#E0D6C8" />
-                    <SolidColorBrush x:Key="CardStrokeColorDefaultBrush" Color="#E0D6C8" />
-                    <SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="#2F2B26" />
-                    <SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="#5F594F" />
-                    <SolidColorBrush x:Key="TextFillColorTertiaryBrush" Color="#655E55" />
-                    <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#6A458E" />
-                    <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#F9F4EA" />
-                    <SolidColorBrush x:Key="ErrorBarBrush" Color="#F4E4DC" />
-                    <SolidColorBrush x:Key="InfoBarBrush" Color="#EDE6D8" />
-                    <SolidColorBrush x:Key="StaleBadgeBrush" Color="#C4A46A" />
-                    <SolidColorBrush x:Key="BadgeTextBrush" Color="#1A1816" />
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#24221F" />
-                    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#1F1D1B" />
-                    <SolidColorBrush x:Key="CardBackgroundFillColorDefaultBrush" Color="#2C2A27" />
-                    <SolidColorBrush x:Key="SolidBackgroundFillColorBaseBrush" Color="#24221F" />
-                    <SolidColorBrush x:Key="SolidBackgroundFillColorSecondaryBrush" Color="#2C2A27" />
-                    <SolidColorBrush x:Key="LayerFillColorDefaultBrush" Color="#24221F" />
-                    <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="#32302C" />
-                    <SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Color="#32302C" />
-                    <SolidColorBrush x:Key="ControlStrokeColorDefaultBrush" Color="#433F3A" />
-                    <SolidColorBrush x:Key="CardStrokeColorDefaultBrush" Color="#433F3A" />
-                    <SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="#C9C6C1" />
-                    <SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="#A09B92" />
-                    <SolidColorBrush x:Key="TextFillColorTertiaryBrush" Color="#969188" />
-                    <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#C4B3D4" />
-                    <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#1A1816" />
-                    <SolidColorBrush x:Key="ErrorBarBrush" Color="#3A2A28" />
-                    <SolidColorBrush x:Key="InfoBarBrush" Color="#2C2A28" />
-                    <SolidColorBrush x:Key="StaleBadgeBrush" Color="#C4A46A" />
-                    <SolidColorBrush x:Key="BadgeTextBrush" Color="#1A1816" />
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
+            <ResourceDictionary.MergedDictionaries><ResourceInclude Source="avares://MeiliMac/DesignSystem/Tokens.axaml"/><ResourceInclude Source="avares://MeiliMac/DesignSystem/ThemeDefaults.axaml"/></ResourceDictionary.MergedDictionaries>
+
         </ResourceDictionary>
     </Application.Resources>
     <!-- After the resources: the styles use StaticResource sizes defined above. -->
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
-        <StyleInclude Source="avares://MeiliMac/Styles.axaml" />
+        <StyleInclude Source="avares://MeiliMac/Styles.axaml" /><StyleInclude Source="avares://MeiliMac/DesignSystem/Components.axaml"/>
     </Application.Styles>
 </Application>

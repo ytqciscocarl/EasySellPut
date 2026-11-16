@@ -201,6 +201,8 @@ public sealed record OptionChain : SourcedData
     public DateOnly? Expiration { get; init; }
 }
 
+public enum EventDateStatus { Unknown, Estimated, SourceConfirmed }
+
 public sealed record Fundamentals : SourcedData
 {
     public required string Symbol { get; init; }
@@ -229,6 +231,9 @@ public sealed record Fundamentals : SourcedData
     public double? TargetPrice { get; init; }
     public double? PriceToBook { get; init; }
     public DateOnly? NextEarningsDate { get; init; }
+    public DateOnly? EarningsDateEnd { get; init; }
+    public EventDateStatus EarningsDateStatus { get; init; }
+    public EventDateStatus ExDividendDateStatus { get; init; }
     public DateOnly? ExDividendDate { get; init; }
 }
 

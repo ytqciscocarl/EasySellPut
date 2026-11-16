@@ -39,6 +39,11 @@ public sealed class SmokeRunner
     public async Task<int> RunAsync(MainWindow window, AppLaunchOptions options)
     {
         var sw = Stopwatch.StartNew();
+        if(options.StartInBackground)await CheckAsync("background-startup",async()=>
+        {
+            if(!window.PresentationSuspended)throw new InvalidOperationException("Background startup did not suspend presentation");
+            AppServices.Get<NotificationService>().Restore(window);await Task.Delay(250);return "background startup retained a native restore path";
+        });
         await CheckAsync("data-dir", () =>
         {
             var dir = AppServices.DataDirectory.Path;
@@ -84,16 +89,80 @@ public sealed class SmokeRunner
             {
                 int before;
                 lock (Errors) before = Errors.Count;
-                window.NavigateForSmoke(page);
+                var rail=(System.Windows.Controls.StackPanel)window.FindName("BuiltinRail");
+                var home=(System.Windows.Controls.Primitives.ToggleButton)window.FindName("HomeWorkspace");
+                var target=Enum.Parse<AppPage>(page.Name.Replace("Page",""));
+                var settingsButton=(System.Windows.Controls.Primitives.ToggleButton)window.FindName("SettingsButton");
+                var button=target==AppPage.Dashboard?home:target==AppPage.Settings?settingsButton:rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Single(b=>Equals(b.Tag,target));
+                button.BringIntoView();button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
                 await Task.Delay(1500);
                 await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 string[] newErrors;
                 lock (Errors) newErrors = Errors.Skip(before).ToArray();
                 if (newErrors.Length > 0) throw new InvalidOperationException(string.Join(" | ", newErrors));
                 if (window.CurrentPageType != page) throw new InvalidOperationException($"navigation ended on {window.CurrentPageType?.Name ?? "none"}");
-                return "loaded";
+                var workspace=(System.Windows.Controls.Grid)window.FindName("WorkspaceGrid");
+                if(workspace.ColumnDefinitions.Count!=2 || workspace.ColumnDefinitions[0].ActualWidth!=64 || window.FindName("ChannelNav") is not null)throw new InvalidOperationException("The wide navigation column returned");
+                if(rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Append(home).Append(settingsButton).Count(b=>b.IsChecked==true)!=1 || button.IsChecked!=true)throw new InvalidOperationException("Navigation rail selection is inconsistent");
+                foreach(var name in new[]{"SettingsButton","LanguageButton","ThemeButton","MotionButton"})
+                {
+                    var action=(System.Windows.Controls.Primitives.ButtonBase)window.FindName(name);
+                    if(action.ActualWidth!=28 || action.ActualHeight!=24)throw new InvalidOperationException("Status action bounds: "+name);
+                    var icon=(System.Windows.Controls.Viewbox)action.Content;var center=icon.TranslatePoint(new Point(icon.ActualWidth/2,icon.ActualHeight/2),action);
+                    if(Math.Abs(center.X-action.ActualWidth/2)>.6 || Math.Abs(center.Y-action.ActualHeight/2)>.6)throw new InvalidOperationException("Off-center status icon: "+name);
+                }
+                return "loaded via single-rail button";
             });
         }
+        if (Directory.Exists(Path.Combine(AppContext.BaseDirectory, "automation"))) await CheckAsync("ai-connection", async () =>
+        {
+            var settings = AppServices.Get<SettingsViewModel>();
+            if (!settings.CanConnectAi) throw new InvalidOperationException("Bundled CLI unavailable");
+            window.NavigateForSmoke(typeof(Meili.App.Views.Pages.SettingsPage));
+            await Task.Delay(300);
+            var page = window.ThemeSurfacesForSmoke().First(p => p.Part == "page").Element;
+            if (page.FindName("ConnectCodex") is not System.Windows.Controls.Button { IsEnabled: true }) throw new InvalidOperationException("Connect button not enabled");
+            await settings.CopyCodexCommand.ExecuteAsync(null);
+            var expected = Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).CodexSetupCommand;
+            if (Clipboard.GetText() != expected) throw new InvalidOperationException("Clipboard connection command mismatch");
+            if (page.FindName("ConnectClaude") is not System.Windows.Controls.Button { IsEnabled: true }) throw new InvalidOperationException("Claude button not enabled");
+            await settings.CopyClaudeCommand.ExecuteAsync(null);
+            if (Clipboard.GetText() != Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).ClaudeSetupCommand) throw new InvalidOperationException("Claude setup command mismatch");
+            var shell=AppServices.Get<ShellViewModel>();
+            if(window.FindName("McpStatusIndicator") is not System.Windows.Controls.Button statusButton || statusButton.Command!=shell.CopyMcpSetupCommand)throw new InvalidOperationException("MCP status copy action unavailable");
+            await shell.CopyMcpSetupCommand.ExecuteAsync(null);
+            var prompt=Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory,AppServices.DataDirectory.Path).ConfigurationPrompt(LocalizationService.Current.Language=="zh-CN");
+            if(Clipboard.GetText()!=prompt || shell.McpStatusText!=LocalizationService.Current["Status_McpCopied"])throw new InvalidOperationException("Universal MCP prompt/feedback mismatch");
+            await settings.CopyUniversalSetupCommand.ExecuteAsync(null);
+            if(Clipboard.GetText()!=prompt)throw new InvalidOperationException("Settings/status universal prompts differ");
+            return "Codex/Claude commands and universal status/settings MCP + skill prompt copied";
+        });
+        if (Directory.Exists(Path.Combine(AppContext.BaseDirectory, "automation"))) await CheckAsync("packaged-webview", async () =>
+        {
+            window.NavigateForSmoke(typeof(Meili.App.Views.Pages.ChartsPage));
+            await Task.Delay(500);
+            var page = window.ThemeSurfacesForSmoke().First(p => p.Part == "page").Element;
+            var chart = page.FindName("Chart") as Meili.App.Views.Controls.WebChartControl;
+            var deadline = DateTimeOffset.UtcNow.AddSeconds(25);
+            while (chart?.LastDiagnostic is null && DateTimeOffset.UtcNow < deadline) await Task.Delay(100);
+            using var diagnostic = JsonDocument.Parse(chart?.LastDiagnostic ?? "{}");
+            if (!diagnostic.RootElement.TryGetProperty("status", out var status) || status.GetString() != "rendered") throw new InvalidOperationException("Packaged chart unavailable: " + chart?.LastDiagnostic);
+            window.RunInBackground();await Task.Delay(200);
+            if(chart?.Session is not null||AppServices.Get<ShellViewModel>().IsClockRunning||!window.PresentationSuspended)throw new InvalidOperationException("Hidden chart/chrome still active");
+            AppServices.Get<NotificationService>().Restore(window);await Task.Delay(350);
+            if(chart?.Session is null||!AppServices.Get<ShellViewModel>().IsClockRunning)throw new InvalidOperationException("Background restore failed");
+            deadline=DateTimeOffset.UtcNow.AddSeconds(25);while(chart.LastDiagnostic is null&&DateTimeOffset.UtcNow<deadline)await Task.Delay(100);
+            using var restored=JsonDocument.Parse(chart.LastDiagnostic??"{}");if(!restored.RootElement.TryGetProperty("status",out var restoredStatus)||restoredStatus.GetString()!="rendered")throw new InvalidOperationException("Restored native chart did not render");
+            return "real bundled chart rendered, released in background and restored";
+        });
+        await CheckAsync("quote-panel",async()=>
+        {
+            using var model=new QuotePanelViewModel(AppServices.Get<Meili.Core.Quotes.QuoteHub>(),AppServices.Get<Meili.Core.Abstractions.IMarketDataService>(),AppServices.Get<WatchlistStore>(),AppServices.Get<SymbolContext>(),AppServices.Get<LocalizationService>());
+            var panel=new Meili.App.Views.QuotePanelWindow(model,_=>{},()=>{},()=>{});
+            var pending=panel.ShowPanelAsync();await Task.Delay(150);
+            if(!panel.IsVisible || model.Rows.Count==0)throw new InvalidOperationException("Native quote panel unavailable");
+            panel.HidePanel();await pending;panel.Close();return "native tray/pinned quote panel opened and canceled cleanly";
+        });
         await CheckAsync("keyboard-wizard", () =>
         {
             window.OpenWizardForSmoke("A");
@@ -230,6 +299,7 @@ public sealed class SmokeRunner
         lock (Errors) errors = [.. Errors];
         var report = new
         {
+            UpdateSource = Meili.Automation.UpdateClient.SourceConfiguration,
             Version = typeof(SmokeRunner).Assembly.GetName().Version?.ToString(),
             Process = Environment.ProcessPath,
             StartedAt = DateTimeOffset.Now - elapsed,

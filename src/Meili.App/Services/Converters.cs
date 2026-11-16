@@ -29,12 +29,12 @@ public sealed class NonEmptyToVisConverter : IValueConverter
 /// <summary>E1: icon per health state.</summary>
 public sealed class HealthIconConverter : IValueConverter
 {
-    public static Wpf.Ui.Controls.SymbolRegular Icon(Meili.Data.Routing.HealthState state) => state switch
+    public static string Icon(Meili.Data.Routing.HealthState state) => state switch
     {
-        Meili.Data.Routing.HealthState.Healthy => Wpf.Ui.Controls.SymbolRegular.CheckmarkCircle24,
-        Meili.Data.Routing.HealthState.Degraded => Wpf.Ui.Controls.SymbolRegular.Warning24,
-        Meili.Data.Routing.HealthState.Down => Wpf.Ui.Controls.SymbolRegular.ErrorCircle24,
-        _ => Wpf.Ui.Controls.SymbolRegular.QuestionCircle24,
+        Meili.Data.Routing.HealthState.Healthy => "CircleCheck",
+        Meili.Data.Routing.HealthState.Degraded => "TriangleAlert",
+        Meili.Data.Routing.HealthState.Down => "CircleX",
+        _ => "Help",
     };
 
     public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) =>

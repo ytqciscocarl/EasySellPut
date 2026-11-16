@@ -50,6 +50,7 @@ public partial class HistoryRowViewModel : ObservableObject
 
 public partial class AlertsViewModel : ObservableObject
 {
+    [ObservableProperty] public partial bool AdvancedExpanded { get; set; }
     private readonly AlertStore _store;
     private readonly WatchlistStore _watchlist;
     private readonly LocalizationService _loc;
@@ -362,13 +363,15 @@ public partial class AlertsViewModel : ObservableObject
             error = _loc["Al_Err_Threshold"];
             return false;
         }
-        if (threshold <= 0 || ((SelectedKind?.Kind.IsIv() ?? false) && threshold > 1000))
+        if (!double.IsFinite(threshold) || threshold <= 0 || ((SelectedKind?.Kind.IsIv() ?? false) && threshold > 1000))
         {
             error = _loc["Al_Err_Threshold"];
             return false;
         }
-        if (!int.TryParse(CooldownText, NumberStyles.Integer, CultureInfo.CurrentCulture, out var cooldown))
-            cooldown = AlertEvaluator.DefaultCooldownMinutes;
+        if (!int.TryParse(CooldownText, NumberStyles.Integer, CultureInfo.CurrentCulture, out var cooldown) || cooldown is <1 or >1440)
+        {
+            AdvancedExpanded=true;error=_loc["UX_CooldownError"];return false;
+        }
         alert.Symbol = symbol;
         alert.Kind = SelectedKind?.Kind ?? AlertKind.PriceAbove;
         alert.Threshold = threshold;

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "easysellput": {
+      "command": "/Users/YOUR_NAME/Applications/EasySellPutCLI/easysellput",
+      "args": ["mcp", "serve"]
+    }
+  }
+}

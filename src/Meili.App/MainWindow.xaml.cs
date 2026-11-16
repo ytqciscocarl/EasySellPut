@@ -27,6 +27,10 @@ public partial class MainWindow : FluentWindow
     {
         InitializeComponent();
         DataContext = AppServices.Get<ShellViewModel>();
+        SetupWorkspace();
+        SetupNewsSplit();
+        SetupBackgroundLifecycle();
+        SetupUpdateNotifications();
         RestorePlacement();
         RootNavigation.Loaded += (_, _) =>
         {
@@ -36,7 +40,7 @@ public partial class MainWindow : FluentWindow
                 pane.SetResourceReference(System.Windows.Controls.Panel.BackgroundProperty, "SidebarBackgroundBrush");
                 pane.Margin = new Thickness(0);
             }
-            RootNavigation.Navigate(StartPageFromArgs() ?? typeof(DashboardPage));
+            if (_currentPage is null) RootNavigation.Navigate(StartPageFromArgs() ?? typeof(DashboardPage));
         };
         Loaded += (_, _) =>
         {
@@ -50,7 +54,7 @@ public partial class MainWindow : FluentWindow
         Closing += OnClosing;
         _nav.Requested += OnNavigateRequested;
         _notify.ExitRequested += (_, _) => RequestExit();
-        RootNavigation.Navigated += (_, e) => _currentPage = e.Page as FrameworkElement;
+        RootNavigation.Navigated += (_, e) => { _currentPage = e.Page as FrameworkElement; SyncMarketNavigation(); };
         WizardBox.WatchSymbols = AppServices.Get<WatchlistStore>().AllSymbols;
         WizardBox.CommitCommand = new RelayCommand(CommitWizard);
         PreviewKeyDown += OnShortcutKeyDown;
@@ -89,7 +93,7 @@ public partial class MainWindow : FluentWindow
         ("title-bar", TitleBar, new Point(320, 22)),
         ("navigation", RootNavigation, new Point(40, 560)),
         ("page", (FrameworkElement?)_currentPage ?? RootNavigation, new Point(1000, 400)),
-        ("status-bar", RootNavigation, new Point(900, ActualHeight - 12)),
+        ("status-bar", StatusBarSurface, StatusBarSurface.TranslatePoint(new Point(8, StatusBarSurface.ActualHeight / 2), this)),
     ];
 
     private bool _smoke;
@@ -102,12 +106,14 @@ public partial class MainWindow : FluentWindow
         if (KeyboardShortcuts.PageFor(key, Keyboard.Modifiers) is { } page)
         {
             CloseWizard();
+            ShowMarketWorkspace();
             RootNavigation.Navigate(page);
             e.Handled = true;
             return;
         }
         if (key == Key.F5 && Keyboard.Modifiers == ModifierKeys.None)
         {
+            if (_activeWebsite is { } id) { _webTabs[id].ReloadPage(); e.Handled = true; return; }
             var cmd = KeyboardShortcuts.RefreshCommandOf(_currentPage?.DataContext);
             if (cmd?.CanExecute(null) == true) cmd.Execute(null);
             e.Handled = true;
@@ -122,7 +128,7 @@ public partial class MainWindow : FluentWindow
 
     private void OnWindowTextInput(object sender, TextCompositionEventArgs e)
     {
-        if (Wizard.Visibility == Visibility.Visible) return;
+        if (_activeWebsite is not null || Wizard.Visibility == Visibility.Visible) return;
         if (!KeyboardShortcuts.StartsWizard(e.Text, IsTextInput(Keyboard.FocusedElement as DependencyObject))) return;
         WatchlistSync();
         Wizard.Visibility = Visibility.Visible;
@@ -199,6 +205,7 @@ public partial class MainWindow : FluentWindow
             // already showing), so every symbol-aware page is reachable with a symbol — not only K-line and alerts.
             if (!string.IsNullOrWhiteSpace(e.Symbol) && e.Page != AppPage.Alerts)
                 AppServices.Get<SymbolContext>().Set(e.Symbol);
+            ShowMarketWorkspace();
             RootNavigation.Navigate(PageType(e.Page));
             if (!string.IsNullOrWhiteSpace(e.Symbol) && e.Page == AppPage.Alerts)
                 AppServices.Get<AlertsViewModel>().PrepareForSymbol(e.Symbol);
@@ -273,6 +280,8 @@ public partial class MainWindow : FluentWindow
         try
         {
             SavePlacement();
+            // Without a tray (including --no-alerts), retain a taskbar restore path.
+            if(!_notify.HasTrayIcon){ShowInTaskbar=true;WindowState=WindowState.Minimized;return;}
             WindowState = WindowState.Normal;
             ShowInTaskbar = false;
             Hide();
@@ -295,7 +304,7 @@ public partial class MainWindow : FluentWindow
     }
 
     private void UpdateThemeIcon() =>
-        ThemeIcon.Symbol = _theme.IsDark ? SymbolRegular.WeatherSunny24 : SymbolRegular.WeatherMoon24;
+        ThemeButton.Content = CreateNavigationIcon(NavigationIcons.Theme,ThemeButton,18);
 
     private void RestorePlacement()
     {

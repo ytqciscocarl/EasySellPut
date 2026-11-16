@@ -57,7 +57,8 @@ public static class MacHost
         if (string.IsNullOrEmpty(dir)) return;
         Directory.CreateDirectory(dir);
         Pump(10);
-        window.CaptureRenderedFrame()?.Save(Path.Combine(dir, $"mac-{name}.png"));
+        using var frame = window.CaptureRenderedFrame();
+        frame?.Save(Path.Combine(dir, $"mac-{name}.png"), new Avalonia.Media.Imaging.PngBitmapEncoderOptions());
     }
 
     /// <summary>Lets queued UI work, bindings, layout and a render pass complete.</summary>

@@ -1,0 +1,37 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <!-- Generated design metrics and typography. -->
+    <sys:Double x:Key="CaptionFontSize">12</sys:Double>
+    <sys:Double x:Key="StatusItemHeight">24</sys:Double>
+    <sys:Double x:Key="StatusLineHeight">16</sys:Double>
+    <sys:Double x:Key="StatusDotSize">6</sys:Double>
+    <sys:Double x:Key="BodyFontSize">15</sys:Double>
+    <sys:Double x:Key="SubtitleFontSize">16</sys:Double>
+    <sys:Double x:Key="TitleFontSize">20</sys:Double>
+    <sys:Double x:Key="DisplayFontSize">30</sys:Double>
+    <sys:Double x:Key="ControlHeight">32</sys:Double>
+    <sys:Double x:Key="ComfortableControlHeight">36</sys:Double>
+    <sys:Double x:Key="ControlRadius">8</sys:Double>
+    <sys:Double x:Key="CardRadius">16</sys:Double>
+    <sys:Double x:Key="ModalRadius">20</sys:Double>
+    <sys:Double x:Key="SpaceXS">4</sys:Double>
+    <sys:Double x:Key="SpaceSM">8</sys:Double>
+    <sys:Double x:Key="SpaceMD">12</sys:Double>
+    <sys:Double x:Key="SpaceLG">16</sys:Double>
+    <sys:Double x:Key="SpaceXL">24</sys:Double>
+    <sys:Double x:Key="Space2XL">32</sys:Double>
+    <sys:Double x:Key="MotionFastMs">120</sys:Double>
+    <sys:Double x:Key="MotionStandardMs">180</sys:Double>
+    <sys:Double x:Key="MotionEnterMs">220</sys:Double>
+    <sys:Double x:Key="FormFieldWidth">260</sys:Double>
+    <sys:Double x:Key="WindowHeaderHeight">36</sys:Double>
+    <sys:TimeSpan x:Key="MotionFastDuration">0:0:0.120</sys:TimeSpan>
+    <sys:TimeSpan x:Key="MotionStandardDuration">0:0:0.180</sys:TimeSpan>
+    <sys:TimeSpan x:Key="MotionEnterDuration">0:0:0.220</sys:TimeSpan>
+    <CornerRadius x:Key="ControlCornerRadius">8</CornerRadius>
+    <CornerRadius x:Key="CardCornerRadius">16</CornerRadius>
+    <CornerRadius x:Key="ModalCornerRadius">20</CornerRadius>
+    <FontFamily x:Key="AppFont">pack://application:,,,/MeiliTerminal;component/Assets/Fonts/#Source Sans 3, Microsoft YaHei UI, Segoe UI</FontFamily>
+    <FontFamily x:Key="NumberFont">pack://application:,,,/MeiliTerminal;component/Assets/Fonts/#Source Sans 3, Microsoft YaHei UI, Segoe UI</FontFamily>
+    <FontFamily x:Key="HeadingFont">pack://application:,,,/MeiliTerminal;component/Assets/Fonts/#Source Serif 4, Microsoft YaHei UI, Segoe UI</FontFamily>
+    <FontFamily x:Key="CodeFont">pack://application:,,,/MeiliTerminal;component/Assets/Fonts/#Source Code Pro, Microsoft YaHei UI, Segoe UI</FontFamily>
+</ResourceDictionary>

@@ -154,16 +154,19 @@ public class PricingSnapshotTests : IDisposable
     internal sealed class SnapshotData : IMarketDataService
     {
         public OptionChain Chain { get; set; } = null!;
+        public BarSeries? Bars { get; set; }
+        public Func<string,CancellationToken,Task<IReadOnlyList<NewsItem>>>? News { get; set; }
+        public Fundamentals? Fundamentals { get; set; }
 
         public Task<IReadOnlyList<Quote>> GetQuotesAsync(IReadOnlyList<string> symbols, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Quote>>(symbols.Select(symbol => new Quote { Symbol = symbol, Price = 100, Source = "test" }).ToArray());
 
         public Task<OptionChain> GetChainAsync(string symbol, DateOnly? expiration = null, CancellationToken ct = default) => Task.FromResult(Chain);
         public Task<IReadOnlyList<DateOnly>> GetExpirationsAsync(string symbol, CancellationToken ct = default) => Task.FromResult(Chain.Expirations);
-        public Task<Fundamentals> GetFundamentalsAsync(string symbol, CancellationToken ct = default) => Task.FromResult(new Fundamentals { Symbol = symbol, DividendYield = 0 });
-        public Task<BarSeries> GetBarsAsync(BarRequest request, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<Fundamentals> GetFundamentalsAsync(string symbol, CancellationToken ct = default) => Task.FromResult(Fundamentals ?? new Fundamentals { Symbol = symbol, DividendYield = 0 });
+        public Task<BarSeries> GetBarsAsync(BarRequest request, CancellationToken ct = default) => Task.FromResult(Bars ?? throw new NotSupportedException());
         public Task<FinancialStatements> GetFinancialsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
-        public Task<IReadOnlyList<NewsItem>> GetNewsAsync(string symbol, int count = 20, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<NewsItem>> GetNewsAsync(string symbol, int count = 20, CancellationToken ct = default) => News?.Invoke(symbol,ct) ?? throw new NotSupportedException();
         public Task<IReadOnlyList<SymbolMatch>> SearchAsync(string query, int limit = 10, CancellationToken ct = default) => throw new NotSupportedException();
     }
 }

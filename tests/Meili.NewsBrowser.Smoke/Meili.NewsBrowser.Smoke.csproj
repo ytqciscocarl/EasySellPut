@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <ReaderWindows Condition="'$(ReaderWindows)' == ''">$([MSBuild]::IsOSPlatform('Windows'))</ReaderWindows>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ReaderWindows)' == 'true'">
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <DefineConstants>$(DefineConstants);WINDOWS_READER</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(ReaderWindows)' == 'true'">
+    <ProjectReference Include="../../src/Meili.App/Meili.App.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(ReaderWindows)' != 'true'">
+    <ProjectReference Include="../../src/Meili.Mac/Meili.Mac.csproj" />
+  </ItemGroup>
+  <ItemGroup><Compile Include="../SharedFixtures/WorkbenchFixture.cs" Link="WorkbenchFixture.cs" /></ItemGroup>
+</Project>

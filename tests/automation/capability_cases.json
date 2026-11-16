@@ -1,0 +1,921 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "operation": "search_symbols",
+      "arguments": {
+        "query": "apple"
+      },
+      "expect": {
+        "/data/0/symbol": {
+          "equals": "AAPL"
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_quotes",
+      "arguments": {
+        "symbols": [
+          "AAPL",
+          "MSFT"
+        ]
+      },
+      "expect": {
+        "/data/quotes/0/source": {
+          "equals": "fixture"
+        },
+        "/data/missingSymbols": {
+          "equals": [
+            "MSFT"
+          ]
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_bars",
+      "arguments": {
+        "symbol": "AAPL",
+        "limit": 1
+      },
+      "expect": {
+        "/data/offlineCache": {
+          "equals": true
+        },
+        "/data/page/items/0/open": {
+          "equals": null
+        },
+        "/data/page/nextOffset": {
+          "equals": 1
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_expirations",
+      "arguments": {
+        "symbol": "AAPL"
+      },
+      "expect": {
+        "/data": {
+          "equals": [
+            "2027-06-18"
+          ]
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_option_chain",
+      "arguments": {
+        "symbol": "AAPL",
+        "right": "put"
+      },
+      "expect": {
+        "/data/page/total": {
+          "equals": 1
+        },
+        "/data/page/items/0/contractSymbol": {
+          "equals": "put"
+        },
+        "/data/entryReferences/items/0/reference/basis": {
+          "equals": "missing"
+        },
+        "/data/entryReferences/items/0/reference/isExecutable": {
+          "equals": false
+        },
+        "/data/entryReferences/items/0/reference/price": {
+          "equals": null
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_fundamentals",
+      "arguments": {
+        "symbol": "AAPL"
+      },
+      "expect": {
+        "/data/symbol": {
+          "equals": "AAPL"
+        },
+        "/data/source": {
+          "equals": "fixture"
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_financials",
+      "arguments": {
+        "symbol": "AAPL"
+      },
+      "expect": {
+        "/data/source": {
+          "equals": "fixture"
+        },
+        "/data/lines": {
+          "equals": []
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_news",
+      "arguments": {
+        "symbol": "AAPL"
+      },
+      "expect": {
+        "/data/0/title": {
+          "equals": "fixture"
+        },
+        "/data/0/url": {
+          "equals": "https://example.com"
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_source_health",
+      "arguments": {},
+      "expect": {
+        "/data/scope": {
+          "equals": "current_process"
+        }
+      },
+      "compare": [
+        "/data/scope"
+      ]
+    },
+    {
+      "operation": "calculate_option",
+      "arguments": {
+        "right": "call",
+        "spot": 100,
+        "strike": 100,
+        "years": 1,
+        "rate": 0.05,
+        "volatility": 0.2
+      },
+      "expect": {
+        "/data/status": {
+          "equals": "ok"
+        },
+        "/data/greeks/price": {
+          "approx": 10.450583572185565,
+          "tolerance": 1e-06
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "calculate_indicators",
+      "arguments": {
+        "closes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "period": 3
+      },
+      "expect": {
+        "/data/sma": {
+          "equals": [
+            null,
+            null,
+            2,
+            3
+          ]
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "analyze_strategy",
+      "arguments": {
+        "spot": 100,
+        "points": 5,
+        "legs": [
+          {
+            "type": "Call",
+            "side": "Short",
+            "quantity": 1,
+            "strike": 110,
+            "premium": 2,
+            "expiry": "2027-06-18"
+          }
+        ]
+      },
+      "expect": {
+        "/data/payoff/isMaxLossUnbounded": {
+          "equals": true
+        },
+        "/data/payoff/maxLoss": {
+          "equals": null
+        },
+        "/data/netCost": {
+          "equals": -200
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_settings",
+      "arguments": {},
+      "expect": {
+        "/data/language": {
+          "equals": "zh-CN"
+        }
+      },
+      "compare": [
+        "/data/language",
+        "/data/proxyMode"
+      ]
+    },
+    {
+      "operation": "create_watchlist_group",
+      "arguments": {
+        "name": "Coverage"
+      },
+      "expect": {
+        "/data/group/name": {
+          "equals": "Coverage"
+        }
+      },
+      "capture": {
+        "groupId": "/data/group/id"
+      },
+      "compare": [
+        "/data/group/name"
+      ]
+    },
+    {
+      "operation": "rename_watchlist_group",
+      "arguments": {
+        "groupId": "${groupId}",
+        "name": "Renamed"
+      },
+      "expect": {
+        "/data/groups/1/name": {
+          "equals": "Renamed"
+        }
+      },
+      "compare": [
+        "/data/groups/1/name"
+      ]
+    },
+    {
+      "operation": "add_watchlist_symbol",
+      "arguments": {
+        "groupId": "${groupId}",
+        "symbol": "AAPL"
+      },
+      "expect": {
+        "/data/groups/1/symbols": {
+          "equals": [
+            "AAPL"
+          ]
+        }
+      },
+      "compare": [
+        "/data/groups/1/symbols"
+      ]
+    },
+    {
+      "operation": "get_watchlists",
+      "arguments": {},
+      "expect": {
+        "/data/1/name": {
+          "equals": "Renamed"
+        },
+        "/data/1/symbols": {
+          "equals": [
+            "AAPL"
+          ]
+        }
+      },
+      "compare": [
+        "/data/1/symbols"
+      ]
+    },
+    {
+      "operation": "remove_watchlist_symbol",
+      "arguments": {
+        "groupId": "${groupId}",
+        "symbol": "AAPL"
+      },
+      "expect": {
+        "/data/groups/1/symbols": {
+          "equals": []
+        }
+      },
+      "compare": [
+        "/data/groups/1/symbols"
+      ]
+    },
+    {
+      "operation": "delete_watchlist_group",
+      "arguments": {
+        "groupId": "${groupId}"
+      },
+      "expect": {
+        "/data/groups": {
+          "length": 1
+        }
+      },
+      "compare": [
+        "/data/groups"
+      ]
+    },
+    {
+      "operation": "save_strategy",
+      "arguments": {
+        "name": "Coverage put",
+        "symbol": "AAPL",
+        "legs": [
+          {
+            "type": "Put",
+            "side": "Short",
+            "quantity": 1,
+            "strike": 95,
+            "premium": 2.5,
+            "expiry": "2027-06-18"
+          }
+        ]
+      },
+      "expect": {
+        "/data/name": {
+          "equals": "Coverage put"
+        },
+        "/data/legs/0/multiplier": {
+          "equals": 100
+        }
+      },
+      "compare": [
+        "/data/name",
+        "/data/legs"
+      ]
+    },
+    {
+      "operation": "get_saved_strategies",
+      "arguments": {},
+      "expect": {
+        "/data/0/name": {
+          "equals": "Coverage put"
+        }
+      },
+      "compare": [
+        "/data/0/legs"
+      ]
+    },
+    {
+      "operation": "delete_strategy",
+      "arguments": {
+        "name": "Coverage put"
+      },
+      "expect": {
+        "/data/deleted": {
+          "equals": "Coverage put"
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "save_alert",
+      "arguments": {
+        "symbol": "AAPL",
+        "kind": "PriceAbove",
+        "threshold": 120
+      },
+      "expect": {
+        "/data/threshold": {
+          "equals": 120
+        },
+        "/data/hasSeenQuote": {
+          "equals": false
+        }
+      },
+      "capture": {
+        "alertId": "/data/id"
+      },
+      "compare": [
+        "/data/symbol",
+        "/data/kind",
+        "/data/threshold"
+      ]
+    },
+    {
+      "operation": "get_alerts",
+      "arguments": {},
+      "expect": {
+        "/data/0/symbol": {
+          "equals": "AAPL"
+        },
+        "/data/0/enabled": {
+          "equals": true
+        }
+      },
+      "compare": [
+        "/data/0/kind",
+        "/data/0/threshold"
+      ]
+    },
+    {
+      "operation": "set_alert_enabled",
+      "arguments": {
+        "id": "${alertId}",
+        "enabled": false
+      },
+      "expect": {
+        "/data/enabled": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data/enabled"
+      ]
+    },
+    {
+      "operation": "get_alert_history",
+      "arguments": {},
+      "expect": {
+        "/data/total": {
+          "equals": 0
+        },
+        "/data/items": {
+          "equals": []
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "delete_alert",
+      "arguments": {
+        "id": "${alertId}"
+      },
+      "expect": {
+        "/data/deleted": {
+          "equals": "${alertId}"
+        }
+      },
+      "compare": [
+        "/success"
+      ]
+    },
+    {
+      "operation": "get_market_events",
+      "arguments": {
+        "symbol": "AAPL",
+        "type": "earnings",
+        "from": "2026-11-19",
+        "to": "2026-11-21"
+      },
+      "expect": {
+        "/data/events/0/type": {
+          "equals": "earnings"
+        },
+        "/data/events/0/date": {
+          "equals": "2026-11-20"
+        },
+        "/data/events/0/confirmation": {
+          "equals": "estimated"
+        },
+        "/data/status": {
+          "equals": "complete"
+        }
+      },
+      "compare": [
+        "/data/events/0/id",
+        "/data/events/0/date",
+        "/data/events/0/confirmation",
+        "/data/coverage",
+        "/data/scope"
+      ]
+    },
+    {
+      "operation": "get_chart_analysis",
+      "arguments": {
+        "symbol": "AAPL",
+        "indicators": {
+          "maPeriod": 1,
+          "emaPeriod": 1
+        }
+      },
+      "expect": {
+        "/data/page/total": {
+          "equals": 2
+        },
+        "/data/page/items/0/close": {
+          "equals": 100
+        },
+        "/data/page/items/0/incomplete": {
+          "equals": true
+        },
+        "/data/page/items/0/open": {
+          "equals": null
+        },
+        "/data/page/items/0/sma": {
+          "equals": 100
+        },
+        "/data/source": {
+          "equals": "fixture"
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "analyze_option_chain",
+      "arguments": {
+        "symbol": "AAPL",
+        "valuationTime": "2026-11-13T15:00:00Z"
+      },
+      "expect": {
+        "/data/page/total": {
+          "equals": 2
+        },
+        "/data/spot": {
+          "equals": 100
+        },
+        "/data/page/items/0/entryReference/basis": {
+          "equals": "missing"
+        }
+      },
+      "compare": [
+        "/data/page",
+        "/data/spot",
+        "/data/spotBasis",
+        "/data/valuationTime"
+      ]
+    },
+    {
+      "operation": "get_pricing_assumptions",
+      "arguments": {
+        "symbol": "AAPL"
+      },
+      "expect": {
+        "/data/symbol": {
+          "equals": "AAPL"
+        },
+        "/data/dividendStatus": {
+          "equals": "assumed_zero"
+        },
+        "/data/dividendYield": {
+          "equals": 0
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_volatility_insights",
+      "arguments": {
+        "symbol": "AAPL",
+        "valuationTime": "2026-11-13T15:00:00Z"
+      },
+      "expect": {
+        "/data/rankStatus": {
+          "equals": "no_current_iv"
+        },
+        "/data/historyDays": {
+          "equals": 0
+        },
+        "/data/requiredDays": {
+          "equals": 20
+        },
+        "/data/term": {
+          "equals": []
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "record_option_snapshot",
+      "arguments": {
+        "symbol": "AAPL"
+      },
+      "expect": {
+        "/data/symbol": {
+          "equals": "AAPL"
+        },
+        "/data/oiRecorded": {
+          "equals": 0
+        },
+        "/data/ivRecorded": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data/oiRecorded",
+        "/data/ivRecorded",
+        "/data/previousContracts"
+      ]
+    },
+    {
+      "operation": "list_strategy_presets",
+      "arguments": {},
+      "expect": {
+        "/data/0/kind": {
+          "equals": "LongCall"
+        },
+        "/data/0/requiresFarExpiry": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "build_strategy",
+      "arguments": {
+        "kind": "BullCallSpread",
+        "spot": 100,
+        "expiry": "2027-06-18",
+        "wingSteps": 1,
+        "quotes": [
+          {
+            "right": "Call",
+            "strike": 100,
+            "premium": 3
+          },
+          {
+            "right": "Call",
+            "strike": 110,
+            "premium": 1.5
+          }
+        ]
+      },
+      "expect": {
+        "/data/status": {
+          "equals": "ok"
+        },
+        "/data/legs/0/side": {
+          "equals": "Long"
+        },
+        "/data/legs/1/side": {
+          "equals": "Short"
+        },
+        "/data/legs/1/premium": {
+          "equals": 1.5
+        },
+        "/data/isExecutable": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "strategy_what_if",
+      "arguments": {
+        "spot": 110,
+        "legs": [
+          {
+            "type": "Call",
+            "side": "Long",
+            "quantity": 1,
+            "strike": 100,
+            "premium": 3,
+            "expiry": "2027-06-18"
+          }
+        ]
+      },
+      "expect": {
+        "/data/result/combinationPnl": {
+          "equals": 700
+        },
+        "/data/result/legs/0/facts/atExpiry": {
+          "equals": true
+        },
+        "/data/result/legs/0/theoreticalPrice": {
+          "equals": 10
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "add_chart_drawing",
+      "arguments": {
+        "symbol": "AAPL",
+        "kind": "HorizontalLine",
+        "price1": 123.45
+      },
+      "expect": {
+        "/data/drawings/0/price1": {
+          "equals": 123.45
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_chart_drawings",
+      "arguments": {
+        "symbol": "AAPL"
+      },
+      "expect": {
+        "/data/drawings/0/price1": {
+          "equals": 123.45
+        },
+        "/data/symbol": {
+          "equals": "AAPL"
+        }
+      },
+      "compare": [
+        "/data"
+      ],
+      "capture": {
+        "drawingRevision": "/data/revision"
+      }
+    },
+    {
+      "operation": "update_chart_drawing",
+      "arguments": {
+        "symbol": "AAPL",
+        "index": 0,
+        "revision": "${drawingRevision}",
+        "kind": "HorizontalLine",
+        "price1": 125.5
+      },
+      "expect": {
+        "/data/drawings/0/price1": {
+          "equals": 125.5
+        },
+        "/data/total": {
+          "equals": 1
+        }
+      },
+      "compare": [
+        "/data"
+      ],
+      "capture": {
+        "editedRevision": "/data/revision"
+      }
+    },
+    {
+      "operation": "delete_chart_drawing",
+      "arguments": {
+        "symbol": "AAPL",
+        "index": 0,
+        "revision": "${editedRevision}"
+      },
+      "expect": {
+        "/data/drawings": {
+          "equals": []
+        },
+        "/data/total": {
+          "equals": 0
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "clear_chart_drawings",
+      "arguments": {
+        "symbol": "AAPL"
+      },
+      "expect": {
+        "/data/drawings": {
+          "equals": []
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "update_preferences",
+      "arguments": {
+        "language": "en-US",
+        "pricing": {
+          "rateMode": "Fixed",
+          "fixedRatePercent": 3
+        },
+        "charts": {
+          "indicators": {
+            "maPeriod": 10
+          }
+        },
+        "closeAction": "MinimizeToTray"
+      },
+      "expect": {
+        "/data/language": {
+          "equals": "en-US"
+        },
+        "/data/pricing/fixedRatePercent": {
+          "equals": 3
+        },
+        "/data/charts/indicators/maPeriod": {
+          "equals": 10
+        },
+        "/data/charts/indicators/rsiPeriod": {
+          "equals": 14
+        },
+        "/data/closeAction": {
+          "equals": "MinimizeToTray"
+        }
+      },
+      "compare": [
+        "/data/language",
+        "/data/pricing",
+        "/data/charts",
+        "/data/closeAction"
+      ]
+    },
+    {
+      "operation": "probe_data_sources",
+      "arguments": {
+        "sourceId": "fixture"
+      },
+      "expect": {
+        "/data/scope": {
+          "equals": "current_process_endpoint_probe"
+        },
+        "/data/sources/0/id": {
+          "equals": "fixture"
+        },
+        "/data/sources/0/state": {
+          "equals": "Healthy"
+        },
+        "/data/sources/0/successes": {
+          "equals": 1
+        }
+      },
+      "compare": [
+        "/data/sources/0/id",
+        "/data/sources/0/state",
+        "/data/sources/0/successes"
+      ]
+    },
+    {
+      "operation": "clear_alert_history",
+      "arguments": {},
+      "expect": {
+        "/data/cleared": {
+          "equals": true
+        },
+        "/data/remaining": {
+          "equals": 0
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "move_watchlist_symbol",
+      "arguments": {
+        "groupId": "default",
+        "symbol": "AAPL",
+        "toIndex": 0
+      },
+      "expect": {
+        "/data/groups/0/symbols/0": {
+          "equals": "AAPL"
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    }
+  ]
+}

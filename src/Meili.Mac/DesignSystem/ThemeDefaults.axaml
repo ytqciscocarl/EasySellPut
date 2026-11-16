@@ -1,0 +1,62 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><ResourceDictionary.ThemeDictionaries>
+<ResourceDictionary x:Key="Light">
+<SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#FAF9F5"/>
+<SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#F0EEE6"/>
+<SolidColorBrush x:Key="CardBackgroundFillColorDefaultBrush" Color="#FFFFFF"/>
+<SolidColorBrush x:Key="SolidBackgroundFillColorBaseBrush" Color="#FAF9F5"/>
+<SolidColorBrush x:Key="SolidBackgroundFillColorSecondaryBrush" Color="#FFFFFF"/>
+<SolidColorBrush x:Key="LayerFillColorDefaultBrush" Color="#FAF9F5"/>
+<SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="#F5F4ED"/>
+<SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Color="#F5F4ED"/>
+<SolidColorBrush x:Key="ControlStrokeColorDefaultBrush" Color="#D1CFC5"/>
+<SolidColorBrush x:Key="CardStrokeColorDefaultBrush" Color="#D1CFC5"/>
+<SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="#141413"/>
+<SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="#30302E"/>
+<SolidColorBrush x:Key="TextFillColorTertiaryBrush" Color="#5E5D59"/>
+<SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#141413"/>
+<SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#FAF9F5"/>
+<SolidColorBrush x:Key="ErrorBarBrush" Color="#F4E4DC"/>
+<SolidColorBrush x:Key="InfoBarBrush" Color="#F0EEE6"/>
+<SolidColorBrush x:Key="StaleBadgeBrush" Color="#C4A46A"/>
+<SolidColorBrush x:Key="BadgeTextBrush" Color="#131722"/>
+<SolidColorBrush x:Key="BrandBrush" Color="#D97757"/>
+<SolidColorBrush x:Key="BrandHoverBrush" Color="#C6613F"/>
+<SolidColorBrush x:Key="FocusBrush" Color="#C46849"/>
+<SolidColorBrush x:Key="LinkBrush" Color="#98472F"/>
+<SolidColorBrush x:Key="InputBackgroundBrush" Color="#FFFFFF"/>
+<SolidColorBrush x:Key="HoverBrush" Color="#F0EEE6"/>
+<SolidColorBrush x:Key="PressedBrush" Color="#E8E6DC"/>
+<SolidColorBrush x:Key="DangerBrush" Color="#A53E36"/>
+<SolidColorBrush x:Key="OverlayBrush" Color="#55141413"/>
+</ResourceDictionary>
+<ResourceDictionary x:Key="Dark">
+<SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#1F1E1D"/>
+<SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#1A1918"/>
+<SolidColorBrush x:Key="CardBackgroundFillColorDefaultBrush" Color="#262624"/>
+<SolidColorBrush x:Key="SolidBackgroundFillColorBaseBrush" Color="#1F1E1D"/>
+<SolidColorBrush x:Key="SolidBackgroundFillColorSecondaryBrush" Color="#262624"/>
+<SolidColorBrush x:Key="LayerFillColorDefaultBrush" Color="#1F1E1D"/>
+<SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="#30302E"/>
+<SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Color="#30302E"/>
+<SolidColorBrush x:Key="ControlStrokeColorDefaultBrush" Color="#4D4C48"/>
+<SolidColorBrush x:Key="CardStrokeColorDefaultBrush" Color="#4D4C48"/>
+<SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="#FAF9F5"/>
+<SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="#D1CFC5"/>
+<SolidColorBrush x:Key="TextFillColorTertiaryBrush" Color="#B0AEA5"/>
+<SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FAF9F5"/>
+<SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#141413"/>
+<SolidColorBrush x:Key="ErrorBarBrush" Color="#3A2A28"/>
+<SolidColorBrush x:Key="InfoBarBrush" Color="#30302E"/>
+<SolidColorBrush x:Key="StaleBadgeBrush" Color="#C4A46A"/>
+<SolidColorBrush x:Key="BadgeTextBrush" Color="#131722"/>
+<SolidColorBrush x:Key="BrandBrush" Color="#D97757"/>
+<SolidColorBrush x:Key="BrandHoverBrush" Color="#E4A38A"/>
+<SolidColorBrush x:Key="FocusBrush" Color="#D97757"/>
+<SolidColorBrush x:Key="LinkBrush" Color="#E4A38A"/>
+<SolidColorBrush x:Key="InputBackgroundBrush" Color="#262624"/>
+<SolidColorBrush x:Key="HoverBrush" Color="#3D3D3A"/>
+<SolidColorBrush x:Key="PressedBrush" Color="#4D4C48"/>
+<SolidColorBrush x:Key="DangerBrush" Color="#E5A19A"/>
+<SolidColorBrush x:Key="OverlayBrush" Color="#99000000"/>
+</ResourceDictionary>
+</ResourceDictionary.ThemeDictionaries></ResourceDictionary>

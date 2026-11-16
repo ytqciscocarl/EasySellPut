@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "easysellput": {
+      "command": "/absolute/path/to/easysellput",
+      "args": ["mcp", "serve", "--data-dir", "/absolute/path/to/EasySellPut-data"]
+    }
+  }
+}

@@ -1,5 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lucide="using:Meili.Mac.Views.Controls"
+    xmlns:ds="using:Meili.Mac.Views.Controls"
+    xmlns:ux="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:sp="using:ScottPlot.Avalonia"
              xmlns:local="using:Meili.Mac.Views"
@@ -7,21 +10,20 @@
              x:DataType="vm:DataSourcesViewModel">
     <ScrollViewer Classes="PageScroller">
         <StackPanel MaxWidth="1200">
-            <TextBlock Classes="PageTitle" Text="{DynamicResource Ds_Title}" />
-            <TextBlock Classes="Secondary" Text="{DynamicResource Ds_Desc}" Margin="0,0,0,16" />
+            <ux:AppFormHeader Title="{DynamicResource Ds_Title}" HelpText="{DynamicResource Ds_Desc}" IsPageTitle="True" Margin="0,0,0,12"/>
 
             <DockPanel LastChildFill="False" Margin="0,0,0,12">
                 <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
                     <TextBlock Classes="CardTitle" Text="{Binding SummaryText}" />
                     <TextBlock Classes="Caption" Text="{Binding NetworkText}" Margin="0,2,0,0" />
                 </StackPanel>
-                <Button DockPanel.Dock="Right" Classes="accent" Padding="14,7" Command="{Binding TestAllCommand}" IsEnabled="{Binding !IsTesting}">
+                <Button DockPanel.Dock="Right" Classes="Primary" Padding="14,7" Command="{Binding TestAllCommand}" IsEnabled="{Binding !IsTesting}">
                     <StackPanel Orientation="Horizontal">
                         
                         <TextBlock Text="{Binding TestButtonText}" />
                     </StackPanel>
                 </Button>
-                <ProgressBar DockPanel.Dock="Right" IsIndeterminate="True" Width="60" MinWidth="60" Height="4" Margin="0,0,12,0"
+                <ux:AppLoading DockPanel.Dock="Right" Margin="0,0,12,0"
                                  IsVisible="{Binding IsTesting}" />
             </DockPanel>
 
@@ -31,10 +33,10 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:SourceRowViewModel">
-                        <Border Classes="Card" Margin="0,0,8,8" Padding="18,14" VerticalAlignment="Stretch">
+                        <ds:AppCard Classes="Card" Margin="0,0,8,8" Padding="18,14" VerticalAlignment="Stretch">
                             <StackPanel>
                                 <DockPanel LastChildFill="False">
-                                    <TextBlock DockPanel.Dock="Left" Text="{Binding StateIcon, Converter={x:Static local:MacConverters.HealthGlyph}}" FontSize="16"
+                                    <lucide:LucideIcon DockPanel.Dock="Left" Kind="{Binding StateIcon, Converter={x:Static local:MacConverters.HealthGlyph}}" Width="16" Height="16"
                                                Foreground="{Binding StateBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                     <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"
                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
@@ -54,19 +56,19 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Classes="Caption" Text="{DynamicResource Ds_Latency}" />
-                                        <TextBlock Classes="CardTitle" FontFamily="{StaticResource NumberFont}" Text="{Binding LatencyText}" />
+                                        <TextBlock Classes="CardTitle" FontFamily="{DynamicResource NumberFont}" Text="{Binding LatencyText}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="1">
                                         <TextBlock Classes="Caption" Text="{DynamicResource Ds_Success}" />
-                                        <TextBlock Classes="CardTitle" FontFamily="{StaticResource NumberFont}" Text="{Binding SuccessText}" />
+                                        <TextBlock Classes="CardTitle" FontFamily="{DynamicResource NumberFont}" Text="{Binding SuccessText}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
                                         <TextBlock Classes="Caption" Text="{DynamicResource Ds_Failures}" />
-                                        <TextBlock Classes="CardTitle" FontFamily="{StaticResource NumberFont}" Text="{Binding FailureText}" />
+                                        <TextBlock Classes="CardTitle" FontFamily="{DynamicResource NumberFont}" Text="{Binding FailureText}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="3">
                                         <TextBlock Classes="Caption" Text="{DynamicResource Ds_LastUsed}" />
-                                        <TextBlock Classes="CardTitle" FontFamily="{StaticResource NumberFont}" Text="{Binding LastUsedText}" />
+                                        <TextBlock Classes="CardTitle" FontFamily="{DynamicResource NumberFont}" Text="{Binding LastUsedText}" />
                                     </StackPanel>
                                 </Grid>
                                 <Border Margin="0,12,0,0" Padding="10,6" CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource DegradedBrush}"
@@ -80,18 +82,17 @@
                                         IsVisible="{Binding HasError}">
                                     <StackPanel>
                                         <TextBlock Classes="Caption" FontWeight="SemiBold" Text="{DynamicResource Ds_LastError}" />
-                                        <TextBlock Classes="Caption" Text="{Binding LastErrorText}" TextTrimming="CharacterEllipsis" MaxHeight="54"
-                                                   ToolTip.Tip="{Binding LastErrorText}" />
+                                        <ux:AppDisclosure Header="{DynamicResource UX_Details}" HorizontalAlignment="Stretch"><SelectableTextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" MaxHeight="240" Text="{Binding LastErrorText}" TextWrapping="Wrap" Margin="0,8,0,0"/></ux:AppDisclosure>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
-                        </Border>
+                        </ds:AppCard>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Ds_Failover}" />
-            <Border Classes="Card" Padding="18,10">
+            <ds:AppCard Classes="Card" Padding="18,10">
                 <ItemsControl ItemsSource="{Binding Failover}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:FailoverRowViewModel">
@@ -106,7 +107,7 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </Border>
+            </ds:AppCard>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

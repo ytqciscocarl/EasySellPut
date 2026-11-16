@@ -1,0 +1,621 @@
+{
+  "schemaVersion": 1,
+  "viewModels": [
+    {
+      "path": "src/Meili.Shared/ViewModels/AlertsViewModel.cs",
+      "operations": [
+        "get_alerts",
+        "get_alert_history",
+        "save_alert",
+        "delete_alert",
+        "set_alert_enabled",
+        "clear_alert_history"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "Add": {
+          "operations": [
+            "save_alert"
+          ]
+        },
+        "Save": {
+          "operations": [
+            "save_alert"
+          ]
+        },
+        "Delete": {
+          "operations": [
+            "delete_alert"
+          ]
+        },
+        "ToggleEnabled": {
+          "operations": [
+            "set_alert_enabled"
+          ]
+        },
+        "ClearHistory": {
+          "operations": [
+            "clear_alert_history"
+          ]
+        },
+        "RecheckAsync": {
+          "uiOnly": "Desktop owns the active alert monitor and notifications; MCP can query rules, history and quotes but does not run a competing monitor."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/ChartsViewModel.cs",
+      "operations": [
+        "get_chart_analysis",
+        "get_bars",
+        "get_market_events",
+        "get_chart_drawings",
+        "add_chart_drawing",
+        "clear_chart_drawings",
+        "update_preferences",
+        "update_chart_drawing",
+        "delete_chart_drawing"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, the chart inspector, drawing-tool selection, responsive event panels, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "SelectRange": {
+          "operations": [
+            "get_chart_analysis"
+          ]
+        },
+        "LoadFromBoxAsync": {
+          "operations": [
+            "get_chart_analysis",
+            "get_market_events"
+          ]
+        },
+        "RefreshAsync": {
+          "operations": [
+            "get_chart_analysis",
+            "get_market_events"
+          ]
+        },
+        "ExportAsync": {
+          "uiOnly": "Native save dialog and CSV layout are presentation; mapped operations expose the underlying structured data for client-side export, without arbitrary file-write tools."
+        },
+        "StartDrawing": {
+          "uiOnly": "Choosing a drawing mode is UI state; persisted annotations are covered by get/add/clear_chart_drawings."
+        },
+        "ClearDrawings": {
+          "operations": [
+            "clear_chart_drawings"
+          ]
+        },
+        "ApplyCompareAsync": {
+          "operations": [
+            "get_chart_analysis"
+          ]
+        },
+        "ResetIndicators": {
+          "operations": [
+            "update_preferences"
+          ]
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/DashboardViewModel.cs",
+      "operations": [
+        "get_quotes",
+        "get_watchlists",
+        "get_settings",
+        "update_preferences"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "OpenDataSources": {
+          "uiOnly": "Navigates to a desktop page/editor; business operations are listed at view-model scope."
+        },
+        "OpenWatchlist": {
+          "uiOnly": "Navigates to a desktop page/editor; business operations are listed at view-model scope."
+        },
+        "OpenOptions": {
+          "uiOnly": "Navigates to a desktop page/editor; business operations are listed at view-model scope."
+        },
+        "OpenSettings": {
+          "uiOnly": "Navigates to a desktop page/editor; business operations are listed at view-model scope."
+        },
+        "DismissGuide": {
+          "operations": [
+            "update_preferences"
+          ]
+        },
+        "RedetectProxyAsync": {
+          "uiOnly": "Local proxy detection/reconfiguration is desktop-owned; credentials and arbitrary proxy URLs are excluded."
+        },
+        "RefreshAsync": {
+          "operations": [
+            "get_quotes"
+          ]
+        },
+        "OpenChart": {
+          "uiOnly": "Navigate to the selected existing quote symbol in the chart workspace; quote/chart data remain covered by existing CLI/MCP operations."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/DataSourcesViewModel.cs",
+      "operations": [
+        "get_source_health",
+        "probe_data_sources"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "TestAllAsync": {
+          "operations": [
+            "probe_data_sources"
+          ]
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/NewsViewModel.cs",
+      "operations": [
+        "get_news",
+        "get_market_events",
+        "get_fundamentals",
+        "get_financials"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "LoadFromBoxAsync": {
+          "operations": [
+            "get_news",
+            "get_fundamentals",
+            "get_financials"
+          ]
+        },
+        "RefreshAsync": {
+          "operations": [
+            "get_news",
+            "get_fundamentals",
+            "get_financials"
+          ]
+        },
+        "ExportAsync": {
+          "uiOnly": "Native save dialog and CSV layout are presentation; mapped operations expose the underlying structured data for client-side export, without arbitrary file-write tools."
+        },
+        "SelectAnnual": {
+          "operations": [
+            "get_financials"
+          ]
+        },
+        "OpenArticle": {
+          "uiOnly": "Opening the inline article split is desktop-only; get_news/get_market_events provide article metadata and URLs."
+        },
+        "OpenWebsite": {
+          "uiOnly": "Opening an external website is desktop-only; get_fundamentals provides the website."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/OptionsViewModel.Insights.cs",
+      "operations": [
+        "get_option_chain",
+        "analyze_option_chain",
+        "get_expirations",
+        "get_pricing_assumptions",
+        "get_volatility_insights",
+        "record_option_snapshot",
+        "build_strategy",
+        "update_preferences"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {}
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/OptionsViewModel.cs",
+      "operations": [
+        "get_option_chain",
+        "analyze_option_chain",
+        "get_expirations",
+        "get_pricing_assumptions",
+        "get_volatility_insights",
+        "record_option_snapshot",
+        "build_strategy",
+        "update_preferences",
+        "analyze_strategy",
+        "save_strategy"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "LoadFromBoxAsync": {
+          "operations": [
+            "analyze_option_chain",
+            "get_volatility_insights"
+          ]
+        },
+        "BuildStrategy": {
+          "operations": [
+            "get_option_chain",
+            "analyze_strategy",
+            "save_strategy"
+          ],
+          "scope": "A selected call/put with Long/Short side becomes explicit legs from its quoted reference; transferring the seed to a desktop tab is presentation. Presets are separately covered by build_strategy."
+        },
+        "RefreshAsync": {
+          "operations": [
+            "analyze_option_chain",
+            "get_volatility_insights"
+          ]
+        },
+        "ExportAsync": {
+          "uiOnly": "Native save dialog and CSV layout are presentation; mapped operations expose the underlying structured data for client-side export, without arbitrary file-write tools."
+        },
+        "SelectWindow": {
+          "uiOnly": "Near-strike windowing is presentation; analyze_option_chain provides strike data and pagination for client filtering."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/SettingsViewModel.cs",
+      "operations": [
+        "get_settings",
+        "update_preferences"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "OpenAiHelp": {
+          "uiOnly": "Opens the fixed official client installation page with an explicit user action."
+        },
+        "CopyAiPromptAsync": {
+          "uiOnly": "Copies a localized client-specific starter question; no data/network operation."
+        },
+        "ApplyProxyAsync": {
+          "uiOnly": "Proxy endpoints/credentials and live connection reconfiguration stay local desktop configuration; no arbitrary network destinations are accepted by MCP."
+        },
+        "OpenDataFolder": {
+          "uiOnly": "Opening a native file manager is desktop-only; get_settings returns the resolved data directory."
+        },
+        "CopyUniversalSetupAsync": {
+          "uiOnly": "Copies the same harness-neutral read-only MCP and skill setup prompt as the status bar; clipboard only."
+        },
+        "CopyCodexAsync": {
+          "uiOnly": "Copies a user-executed Codex setup command: preflight the client and local read-only MCP, install/upgrade the unedited bundled skill, then register and verify read-only MCP. The application does not execute it or alter client configuration."
+        },
+        "CopyMcpTomlAsync": {
+          "uiOnly": "Copies read-only stdio connection templates to the desktop clipboard; does not execute commands or edit AI client configuration. No new market/business operation."
+        },
+        "CopyMcpJsonAsync": {
+          "uiOnly": "Copies read-only stdio connection templates to the desktop clipboard; does not execute commands or edit AI client configuration. No new market/business operation."
+        },
+        "CopyClaudeAsync": {
+          "uiOnly": "Copies a user-executed Claude Code setup command: preflight the client and local read-only MCP, install/upgrade the unedited bundled skill, then register and verify read-only stdio MCP. The application does not execute it or alter client configuration."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/ShellViewModel.cs",
+      "operations": [
+        "get_quotes",
+        "get_watchlists"
+      ],
+      "scope": "Shell window/navigation actions and the shared Claude-inspired component/theme system (cards, selects, forms, drawers, modals, loading and motion) are UI-only. The single Discord-style rail for built-in pages and websites, local web-workspace.json bookmarks/order/motion preferences, unprivileged browser tab navigation and tab management are desktop presentation, not market operations; intentionally no CLI/MCP arbitrary-URL browser execution, session/cookie access or window controls. The macOS shell MenuBarQuoteController presents quotes and watchlist choices through the existing QuoteHub; status-item rendering, current-symbol selection, hide/show and native lifecycle have no MCP window-control tools. Background window visibility, chrome timers and native restore controls are desktop presentation; closeAction remains update_preferences.",
+      "commands": {
+        "CopyMcpSetupAsync": {
+          "uiOnly": "Copies harness-neutral read-only MCP and skill setup instructions to the clipboard; local diagnostic status is not market health or authorization."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/StrategyLegRow.cs",
+      "operations": [
+        "analyze_strategy",
+        "strategy_what_if",
+        "save_strategy"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {}
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/StrategyViewModel.Quotes.cs",
+      "operations": [
+        "get_option_chain",
+        "analyze_option_chain",
+        "get_pricing_assumptions",
+        "list_strategy_presets",
+        "build_strategy",
+        "analyze_strategy",
+        "strategy_what_if",
+        "save_strategy",
+        "get_saved_strategies",
+        "delete_strategy",
+        "update_preferences"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {}
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/StrategyViewModel.Saved.cs",
+      "operations": [
+        "get_option_chain",
+        "analyze_option_chain",
+        "get_pricing_assumptions",
+        "list_strategy_presets",
+        "build_strategy",
+        "analyze_strategy",
+        "strategy_what_if",
+        "save_strategy",
+        "get_saved_strategies",
+        "delete_strategy",
+        "update_preferences"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "SaveStrategy": {
+          "operations": [
+            "save_strategy"
+          ]
+        },
+        "LoadSavedAsync": {
+          "operations": [
+            "get_saved_strategies",
+            "analyze_strategy"
+          ]
+        },
+        "DeleteSaved": {
+          "operations": [
+            "delete_strategy"
+          ]
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/StrategyViewModel.WhatIf.cs",
+      "operations": [
+        "get_option_chain",
+        "analyze_option_chain",
+        "get_pricing_assumptions",
+        "list_strategy_presets",
+        "build_strategy",
+        "analyze_strategy",
+        "strategy_what_if",
+        "save_strategy",
+        "get_saved_strategies",
+        "delete_strategy",
+        "update_preferences"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "DismissHint": {
+          "operations": [
+            "update_preferences"
+          ]
+        },
+        "SelectTickDensity": {
+          "uiOnly": "Chart ruler tick density is presentation; strategy_what_if accepts the chosen price directly."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/StrategyViewModel.Workbench.cs",
+      "operations": [
+        "get_option_chain",
+        "analyze_option_chain",
+        "get_pricing_assumptions",
+        "list_strategy_presets",
+        "build_strategy",
+        "analyze_strategy",
+        "strategy_what_if",
+        "save_strategy",
+        "get_saved_strategies",
+        "delete_strategy",
+        "update_preferences"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {}
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/StrategyViewModel.cs",
+      "operations": [
+        "get_option_chain",
+        "analyze_option_chain",
+        "get_pricing_assumptions",
+        "list_strategy_presets",
+        "build_strategy",
+        "analyze_strategy",
+        "strategy_what_if",
+        "save_strategy",
+        "get_saved_strategies",
+        "delete_strategy",
+        "update_preferences"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "LoadFromBoxAsync": {
+          "operations": [
+            "get_option_chain",
+            "analyze_strategy"
+          ]
+        },
+        "RefreshAsync": {
+          "operations": [
+            "get_option_chain",
+            "analyze_strategy"
+          ]
+        },
+        "ApplyPreset": {
+          "operations": [
+            "build_strategy"
+          ]
+        },
+        "SelectHorizon": {
+          "operations": [
+            "strategy_what_if",
+            "analyze_strategy"
+          ]
+        },
+        "AddCall": {
+          "operations": [
+            "analyze_strategy",
+            "save_strategy"
+          ]
+        },
+        "AddPut": {
+          "operations": [
+            "analyze_strategy",
+            "save_strategy"
+          ]
+        },
+        "AddStock": {
+          "operations": [
+            "analyze_strategy",
+            "save_strategy"
+          ]
+        },
+        "RemoveLeg": {
+          "operations": [
+            "analyze_strategy",
+            "save_strategy"
+          ]
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/WatchlistViewModel.cs",
+      "operations": [
+        "get_watchlists",
+        "search_symbols",
+        "get_quotes",
+        "create_watchlist_group",
+        "rename_watchlist_group",
+        "delete_watchlist_group",
+        "add_watchlist_symbol",
+        "remove_watchlist_symbol",
+        "move_watchlist_symbol"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {
+        "SelectGroup": {
+          "uiOnly": "Selecting a visible tab is UI state; get_watchlists exposes every group."
+        },
+        "OpenDataSources": {
+          "uiOnly": "Navigates to a desktop page/editor; business operations are listed at view-model scope."
+        },
+        "RefreshAsync": {
+          "operations": [
+            "get_quotes",
+            "get_watchlists"
+          ]
+        },
+        "AddAsync": {
+          "operations": [
+            "add_watchlist_symbol"
+          ]
+        },
+        "AddMatchAsync": {
+          "operations": [
+            "add_watchlist_symbol"
+          ]
+        },
+        "RemoveSelected": {
+          "operations": [
+            "remove_watchlist_symbol"
+          ]
+        },
+        "MoveUp": {
+          "operations": [
+            "move_watchlist_symbol"
+          ]
+        },
+        "MoveDown": {
+          "operations": [
+            "move_watchlist_symbol"
+          ]
+        },
+        "BeginAddGroup": {
+          "uiOnly": "Opening an editor is UI state; create_watchlist_group performs the business change."
+        },
+        "BeginRenameGroup": {
+          "uiOnly": "Opening an editor is UI state; rename_watchlist_group performs the business change."
+        },
+        "CancelGroupEdit": {
+          "uiOnly": "Canceling an unsaved editor is UI state."
+        },
+        "ConfirmGroupEdit": {
+          "operations": [
+            "create_watchlist_group",
+            "rename_watchlist_group"
+          ]
+        },
+        "RemoveGroupAsync": {
+          "operations": [
+            "delete_watchlist_group"
+          ]
+        },
+        "OpenChart": {
+          "uiOnly": "Navigates to a desktop page/editor; business operations are listed at view-model scope."
+        },
+        "OpenOptions": {
+          "uiOnly": "Navigates to a desktop page/editor; business operations are listed at view-model scope."
+        },
+        "OpenStrategy": {
+          "uiOnly": "Navigates to a desktop page/editor; business operations are listed at view-model scope."
+        },
+        "OpenNews": {
+          "uiOnly": "Navigates to a desktop page/editor; business operations are listed at view-model scope."
+        },
+        "SetAlert": {
+          "uiOnly": "Navigates to a desktop page/editor; business operations are listed at view-model scope."
+        },
+        "ExportAsync": {
+          "uiOnly": "Native save dialog and CSV layout are presentation; mapped operations expose the underlying structured data for client-side export, without arbitrary file-write tools."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/WhatIfLegRow.cs",
+      "operations": [
+        "strategy_what_if"
+      ],
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "commands": {}
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/QuotePanelViewModel.cs",
+      "operations": [
+        "get_quotes",
+        "get_bars",
+        "get_watchlists"
+      ],
+      "scope": "Native macOS menu bar / Windows tray and pinned window are desktop-only presentation. Quotes, intraday bars and watchlist remain available through existing CLI/MCP operations; latest-session sparklines add no indicator or new business mutation. Visibility, selection, paging and pinning do not launch competing market loops.",
+      "commands": {}
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/UpdateViewModel.cs",
+      "scope": "Desktop-owned verified update checks, shared footer/dialog/settings state, downloads and explicit installer handoff; never exposed via MCP.",
+      "operations": [],
+      "commands": {
+        "CheckUpdatesAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "DownloadUpdateAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "InstallUpdateAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "CancelUpdate": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "OpenUpdateFolder": {
+          "uiOnly": "Opens the already verified local download folder for explicit manual installation/recovery; never accepts arbitrary URLs or exposes executable replacement through MCP."
+        },
+        "OpenUpdateHistory": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "OpenUpdatePrompt": {
+          "uiOnly": "Desktop update reminder visibility only; no business mutation, installation or MCP equivalent."
+        },
+        "DismissUpdatePrompt": {
+          "uiOnly": "Desktop update reminder visibility only; no business mutation, installation or MCP equivalent."
+        }
+      }
+    }
+  ]
+}

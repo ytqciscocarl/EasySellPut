@@ -19,6 +19,7 @@ public sealed class AlertStore
     };
 
     private readonly object _gate = new();
+    private readonly SnapshotFile _snapshot;
     public string FilePath { get; }
     public AlertDocument Current { get; private set; } = new();
 
@@ -45,6 +46,7 @@ public sealed class AlertStore
     {
         Directory.CreateDirectory(dataDirectory);
         FilePath = Path.Combine(dataDirectory, "alerts.json");
+        _snapshot = new SnapshotFile(FilePath);
     }
 
     public AlertDocument Load()
@@ -55,7 +57,7 @@ public sealed class AlertStore
             {
                 if (File.Exists(FilePath))
                 {
-                    var text = File.ReadAllText(FilePath);
+                    var text = _snapshot.Read()!;
                     Current = Normalize(JsonSerializer.Deserialize<AlertDocument>(text, Json) ?? new AlertDocument());
                     return Current;
                 }
@@ -66,6 +68,7 @@ public sealed class AlertStore
                 try { File.Copy(FilePath, FilePath + ".corrupt-" + DateTime.Now.ToString("yyyyMMddHHmmss"), true); }
                 catch (Exception copyEx) { Diagnostics.AppLog.Warn("alerts", "could not keep a copy of the corrupt file", copyEx); }
             }
+            _snapshot.Read();
             Current = new AlertDocument();
             return Current;
         }
@@ -76,9 +79,7 @@ public sealed class AlertStore
         lock (_gate)
         {
             Current = Normalize(document ?? Current);
-            var tmp = FilePath + ".tmp";
-            File.WriteAllText(tmp, JsonSerializer.Serialize(Current, Json));
-            File.Move(tmp, FilePath, overwrite: true);
+            _snapshot.Write(JsonSerializer.Serialize(Current, Json));
             _dirtySince = null;
             WriteCount++;
         }
@@ -111,9 +112,7 @@ public sealed class AlertStore
     {
         try
         {
-            var tmp = FilePath + ".tmp";
-            File.WriteAllText(tmp, JsonSerializer.Serialize(Current, Json));
-            File.Move(tmp, FilePath, overwrite: true);
+            _snapshot.Write(JsonSerializer.Serialize(Current, Json));
             _dirtySince = null;
             WriteCount++;
         }

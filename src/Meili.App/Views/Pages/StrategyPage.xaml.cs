@@ -26,30 +26,41 @@ public partial class StrategyPage : Page
         DataContext = vm;
         Loaded += async (_, _) =>
         {
+            if (_active) return;
+            _active = true;
             AttachWhatIf(vm);
-            HighlightHorizonButtons();
-            HighlightTickButtons();
-            SyncRuler();
-            await vm.ActivateAsync();
-            RenderChart();
-            SyncRuler();
+            vm.ChartChanged += OnChartChanged; vm.PropertyChanged += OnVmPropertyChanged;
+            ThemeService.ColorsChanged += OnChartChanged;
+            RefreshSurface();
+            await vm.ActivateAsync(); RefreshSurface();
         };
         Unloaded += (_, _) =>
         {
-            DetachWhatIf(vm);
-            vm.Deactivate();
+            _active = false;
+            DetachWhatIf(vm); vm.ChartChanged -= OnChartChanged; vm.PropertyChanged -= OnVmPropertyChanged;
+            ThemeService.ColorsChanged -= OnChartChanged;
+            Workspace.Stop(); vm.Deactivate();
         };
-        vm.ChartChanged += (_, _) => Dispatcher.Invoke(() =>
-        {
-            HighlightHorizonButtons();
-            HighlightTickButtons();
-            RenderChart();
-            SyncRuler();
-        });
-        ThemeService.ColorsChanged += (_, _) => Dispatcher.Invoke(RenderChart);
+        SurfaceTabs.SelectionChanged += (_, _) => { if (_active) RefreshSurface(); };
         Ruler.ValueDragged += (_, price) => vm.SetWhatIfPrice(price);
     }
 
+    private bool _active;
+    public void ShowDetailedAnalysis() => DetailedTab.IsSelected = true;
+    private void OnChartChanged(object? sender, EventArgs e) { if (_active) RefreshSurface(); }
+    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    { if (_active && e.PropertyName is nameof(StrategyViewModel.IsBusy) or nameof(StrategyViewModel.StatusText) or nameof(StrategyViewModel.SymbolText)) UpdateWorkspace(); }
+    private void UpdateWorkspace() { if (Workspace.Session is not null) Workspace.Update(WpfChartPalette.Current(_theme.IsDark)); }
+    private void RefreshSurface()
+    {
+        if (!_active) return;
+        if (WorkbenchTab.IsSelected)
+        {
+            if (Workspace.Session is null) Workspace.Start(Vm, WpfChartPalette.Current(_theme.IsDark));
+            else UpdateWorkspace();
+        }
+        else { Workspace.Stop(); HighlightHorizonButtons(); HighlightTickButtons(); RenderChart(); SyncRuler(); }
+    }
     private StrategyViewModel Vm => (StrategyViewModel)DataContext;
 
     private void AttachWhatIf(StrategyViewModel vm)
@@ -69,6 +80,7 @@ public partial class StrategyPage : Page
     private void OnWhatIfChanged(object? sender, EventArgs e)
         => Dispatcher.Invoke(() =>
         {
+            UpdateWorkspace();
             if (_whatIfLine is not null && Vm.WhatIfPrice is { } px)
                 _whatIfLine.X = px;
             SyncRuler();
@@ -152,6 +164,7 @@ public partial class StrategyPage : Page
 
     private void RenderChart()
     {
+        if (!_active || WorkbenchTab.IsSelected) return;
         var plot = PayoffPlot.Plot;
         plot.Clear();
         _whatIfLine = null;

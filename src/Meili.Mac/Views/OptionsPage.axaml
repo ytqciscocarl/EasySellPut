@@ -1,5 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ds="using:Meili.Mac.Views.Controls"
+    xmlns:ux="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:controls="using:Meili.Mac.Views.Controls"
              xmlns:sp="using:ScottPlot.Avalonia"
@@ -34,15 +36,15 @@
             <Setter Property="Padding" Value="0" />
         </Style>
     </UserControl.Styles>
-    <DockPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <DockPanel MinHeight="760" Height="{Binding $parent[ScrollViewer].Bounds.Height}">
         <StackPanel DockPanel.Dock="Top" Margin="32,20,32,8">
-            <TextBlock Classes="PageTitle" Text="{DynamicResource Op_Title}" />
-            <TextBlock Classes="Secondary" Text="{DynamicResource Op_Desc}" Margin="0,0,0,12" />
+            <ux:AppFormHeader Title="{DynamicResource Op_Title}" HelpText="{DynamicResource Op_Desc}" IsPageTitle="True" Margin="0,0,0,12"/>
             <DockPanel Margin="0,0,0,10">
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Content="{DynamicResource Op_Export}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Op_Refresh}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Accent" Command="{Binding LoadFromBoxCommand}" Content="{DynamicResource Op_Load}" />
-                <ComboBox x:Name="ExpirationBox" DockPanel.Dock="Right" MinWidth="220" Margin="8,0,0,0"
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Op_Refresh}"  IsEnabled="{Binding !IsBusy}"/>
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Primary" Command="{Binding LoadFromBoxCommand}" Content="{DynamicResource Op_Load}"  IsEnabled="{Binding !IsBusy}"/>
+                <ds:AppSelect x:Name="ExpirationBox" DockPanel.Dock="Right" MinWidth="220" Margin="8,0,0,0"
                           ItemsSource="{Binding Expirations}" SelectedItem="{Binding SelectedExpiration}" DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
                 <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="12,0,0,0" Text="{DynamicResource Op_Expiration}" />
                 <controls:SymbolBox x:Name="SymbolInput" MinWidth="200" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}"
@@ -72,8 +74,7 @@
                         Command="{Binding SelectWindowCommand}" CommandParameter="{x:Static vm:StrikeWindowKind.Near20}" />
                 <Button x:Name="All" Classes="Chip" Padding="10,6" Margin="0,0,6,0" Content="{DynamicResource Op_RangeAll}"
                         Command="{Binding SelectWindowCommand}" CommandParameter="{x:Static vm:StrikeWindowKind.All}" />
-            </WrapPanel>
-            <WrapPanel Margin="0,0,0,8">
+            <ux:AppPopover x:Name="OptionControlsPopover" Header="{DynamicResource UX_Columns}" Margin="6,0,0,0"><ux:AppPopover.PopupContent><WrapPanel>
                 <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,0,10,0" Text="{DynamicResource Op_Columns}" />
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_Volume}" IsChecked="{Binding ShowVolume}" />
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_OI}" IsChecked="{Binding ShowOi}" />
@@ -88,9 +89,9 @@
                 <CheckBox Margin="12,0,12,0" Content="{DynamicResource Op_Compact}" IsChecked="{Binding CompactColumns}" ToolTip.Tip="{DynamicResource Op_CompactTip}" />
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_Smile}" IsChecked="{Binding ShowSmile}" />
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_Term}" IsChecked="{Binding ShowTerm}" ToolTip.Tip="{DynamicResource Op_TermTip}" IsEnabled="{Binding ShowSmile}" />
-            </WrapPanel>
+            </WrapPanel></ux:AppPopover.PopupContent></ux:AppPopover></WrapPanel><WrapPanel Margin="0,0,0,8" IsEnabled="{Binding HasSelectedRow}"><TextBlock Classes="Caption" Text="{DynamicResource UX_SelectedContract}" Margin="0,0,8,0" VerticalAlignment="Center"/><Button Content="{DynamicResource Op_SeedLongCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="LC" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedShortCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="SC" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedLongPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="LP" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedShortPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="SP" Margin="0,0,6,0"/></WrapPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                <ProgressBar IsIndeterminate="True" Width="60" Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />
+                <controls:AppLoading Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />
                 <TextBlock Classes="Caption" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,16,0" />
                 <TextBlock Classes="Caption" Text="{Binding LocalNote}" VerticalAlignment="Center" />
             </StackPanel>
@@ -114,4 +115,5 @@
             </DataGrid>
         </Panel>
     </DockPanel>
+    </ScrollViewer>
 </UserControl>

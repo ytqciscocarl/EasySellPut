@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:chrome="using:Avalonia.Controls.Chrome">
+    <!-- Use Avalonia's platform hit testing, resizing, snap and caption actions. -->
+    <ControlTheme x:Key="AppWindowDecorations" TargetType="chrome:WindowDrawnDecorations"
+                  BasedOn="{StaticResource {x:Type chrome:WindowDrawnDecorations}}">
+        <Setter Property="DefaultTitleBarHeight" Value="{StaticResource WindowHeaderHeight}"/>
+        <Style Selector="^ /template/ Panel#PART_TitleBar"><Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}"/></Style>
+        <Style Selector="^ /template/ Panel#PART_TitleTextPanel"><Setter Property="IsVisible" Value="False"/></Style>
+        <Style Selector="^ /template/ StackPanel#PART_OverlayPanel"><Setter Property="TextElement.Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Style>
+    </ControlTheme>
+</ResourceDictionary>

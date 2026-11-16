@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ux="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:controls="using:Meili.Mac.Views.Controls"
              x:Class="Meili.Mac.Views.NewsPage"
@@ -34,13 +35,13 @@
     <UserControl.Styles>
         <Style Selector="TextBlock.FinCell">
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="FontFamily" Value="{StaticResource NumberFont}" />
+            <Setter Property="FontFamily" Value="{DynamicResource NumberFont}" />
             <Setter Property="TextAlignment" Value="Right" />
         </Style>
         <Style Selector="TextBlock.StatValue">
             <Setter Property="FontSize" Value="16" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontFamily" Value="{StaticResource NumberFont}" />
+            <Setter Property="FontFamily" Value="{DynamicResource NumberFont}" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <Style Selector="ListBox#NewsList ListBoxItem">
@@ -49,23 +50,22 @@
     </UserControl.Styles>
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Margin="32,20,32,8">
-            <TextBlock Classes="PageTitle" Text="{DynamicResource Nf_Title}" />
-            <TextBlock Classes="Secondary" Text="{DynamicResource Nf_Desc}" Margin="0,0,0,12" />
+            <ux:AppFormHeader Title="{DynamicResource Nf_Title}" HelpText="{DynamicResource Nf_Desc}" IsPageTitle="True" Margin="0,0,0,12"/>
             <DockPanel Margin="0,0,0,10">
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Content="{DynamicResource Nf_Export}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Nf_Refresh}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Accent" Command="{Binding LoadFromBoxCommand}" Content="{DynamicResource Nf_Load}" />
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Nf_Refresh}"  IsEnabled="{Binding !IsBusy}"/>
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Primary" Command="{Binding LoadFromBoxCommand}" Content="{DynamicResource Nf_Load}"  IsEnabled="{Binding !IsBusy}"/>
                 <controls:SymbolBox x:Name="SymbolInput" MinWidth="200" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}"
                                     CommitCommand="{Binding LoadFromBoxCommand}" />
             </DockPanel>
             <DockPanel Margin="0,0,0,6">
-                <TextBlock DockPanel.Dock="Right" FontSize="16" FontWeight="SemiBold" FontFamily="{StaticResource NumberFont}"
+                <TextBlock DockPanel.Dock="Right" FontSize="16" FontWeight="SemiBold" FontFamily="{DynamicResource NumberFont}"
                            Text="{Binding ChangeText}" Foreground="{Binding ChangeBrush}" VerticalAlignment="Center" Margin="16,0,0,0" />
                 <TextBlock Classes="CardTitle" FontSize="18" Text="{Binding Headline}" VerticalAlignment="Center" TextWrapping="Wrap" />
             </DockPanel>
             <TextBlock Classes="Caption" Text="{Binding MetaText}" Margin="0,0,0,6" />
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                <ProgressBar IsIndeterminate="True" Width="60" Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />
+                <ux:AppLoading Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />
                 <TextBlock Classes="Caption" Text="{Binding StatusText}" VerticalAlignment="Center" />
             </StackPanel>
         </StackPanel>
@@ -90,15 +90,15 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <TextBlock Classes="CardTitle" Text="{DynamicResource Nf_Profile}" Margin="0,8,0,8" />
+
                     <TextBlock Classes="Secondary" Text="{DynamicResource Nf_NoProfile}" IsVisible="{Binding !HasProfile}" />
-                    <StackPanel IsVisible="{Binding HasProfile}">
+                    <ux:AppDisclosure Header="{DynamicResource Nf_Profile}" HorizontalAlignment="Stretch" IsVisible="{Binding HasProfile}"><StackPanel IsVisible="{Binding HasProfile}">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4" IsVisible="{Binding HasWebsite}">
                             <TextBlock Classes="Caption" Text="{DynamicResource Nf_Website}" VerticalAlignment="Center" Margin="0,0,8,0" />
                             <HyperlinkButton Padding="0" Command="{Binding OpenWebsiteCommand}" Content="{Binding WebsiteText}" />
                         </StackPanel>
                         <TextBlock Classes="Body" Text="{Binding Description}" TextWrapping="Wrap" FontSize="14" />
-                    </StackPanel>
+                    </StackPanel></ux:AppDisclosure>
 
                     <DockPanel Margin="0,16,0,8">
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
@@ -126,9 +126,9 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:NewsEntry">
                             <DockPanel>
-                                <Button DockPanel.Dock="Right" Margin="8,0,0,0" VerticalAlignment="Top" FontSize="13" Padding="10,6"
+                                <Button DockPanel.Dock="Right" Margin="8,0,0,0" VerticalAlignment="Top" FontSize="13"
                                         Command="{Binding $parent[UserControl].((vm:NewsViewModel)DataContext).OpenArticleCommand}"
-                                        CommandParameter="{Binding}" Content="{DynamicResource Nf_OpenArticle}" />
+                                        CommandParameter="{Binding}"  Width="32" Height="32" MinWidth="32" MinHeight="32" Padding="0" AutomationProperties.Name="{DynamicResource Nf_OpenArticle}" ToolTip.Tip="{Binding Title}"><ux:LucideIcon Kind="ExternalLink" Width="18" Height="18"/></Button>
                                 <StackPanel>
                                     <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" />
                                     <TextBlock Classes="Caption" Margin="0,4,0,0" ToolTip.Tip="{Binding TimeTip}">

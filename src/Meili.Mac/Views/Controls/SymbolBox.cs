@@ -47,12 +47,12 @@ public sealed class SymbolBox : UserControl
 
     public SymbolBox()
     {
-        _box = new TextBox { MinHeight = 32 };
+        _box = new TextBox { Height = 32, MinHeight = 32, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(8, 4) };
         _box[!TextBox.PlaceholderTextProperty] = _box.GetResourceObservable("Sb_Placeholder").ToBinding();
         _box.TextChanged += OnBoxTextChanged;
         _box.AddHandler(KeyDownEvent, OnBoxKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
 
-        var chevron = new Button { Content = "⌄", Classes = { "Subtle" }, Padding = new Thickness(8, 0), Margin = new Thickness(4, 0, 0, 0), Focusable = false };
+        var chevron = new Button { Content = new LucideIcon { Kind = "ChevronDown", Width = 14, Height = 14 }, Classes = { "Subtle", "Icon" }, Width = 32, Height = 32, MinWidth = 32, MinHeight = 32, Padding = new Thickness(0), HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0), Focusable = false };
         chevron[!ToolTip.TipProperty] = chevron.GetResourceObservable("Sb_ShowWatchlist").ToBinding();
         chevron.Click += (_, _) => { _box.Focus(); _ = RefreshAsync(showAll: true, open: true); };
 

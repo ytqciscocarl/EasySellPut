@@ -27,9 +27,10 @@ public partial class StrategyViewModel
             StatusText = err ?? _loc["St_NoLegs"];
             return;
         }
+        var symbol = WorkbenchDraftSymbol;
         var name = SaveName.Trim();
-        if (name.Length == 0) name = $"{SymbolText} {strategy!.Name} {DateTime.Now:yyyy-MM-dd HH:mm}";
-        var saved = new SavedStrategy(name, SymbolText, strategy!.Kind, strategy.Legs.Select(SavedLeg.From).ToList(), DateTimeOffset.Now);
+        if (name.Length == 0) name = $"{symbol} {strategy!.Name} {DateTime.Now:yyyy-MM-dd HH:mm}";
+        var saved = new SavedStrategy(name, symbol, strategy!.Kind, strategy.Legs.Select(SavedLeg.From).ToList(), DateTimeOffset.Now);
         _store.Save(saved);
         Saved.Clear();
         foreach (var x in _store.All) Saved.Add(x);
@@ -57,6 +58,7 @@ public partial class StrategyViewModel
         finally { _suppress = false; }
         await LoadAsync();
         ReplaceLegs(legs);
+        foreach (var row in Legs) row.LockEntryPrice();
         Recompute();
         ChartChanged?.Invoke(this, EventArgs.Empty);
     }

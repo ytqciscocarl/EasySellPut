@@ -1,0 +1,69 @@
+{
+  "retrievedAt": "2026-11-15",
+  "sources": [
+    "https://claude.com/",
+    "https://claude.com/resources/articles"
+  ],
+  "method": "Public official HTML/CSS, computed styles and Chromium screenshots; TLS verified through the environment proxy CA.",
+  "stylesheets": [
+    {
+      "url": "https://claude.com/_next/static/chunks/195c2e474ca3e6f7.css",
+      "sha256": "28c41cf8605ba27f1c4da3eb0e00c9977953e6124c2e7f9b377792027ae1fc91"
+    },
+    {
+      "url": "https://claude.com/_next/static/chunks/3cde75a69e093403.css",
+      "sha256": "f08350291196468837fa477692d265e8cc36a3f0063466b5c2bdf5b6456150e9"
+    },
+    {
+      "url": "https://claude.com/_next/static/chunks/65b05d6cc5f2efee.css",
+      "sha256": "fa5bb0071ba8d565a3f5de28d3270365a353ec47ff742eece8fdb35c1f8dfa07"
+    },
+    {
+      "url": "https://claude.com/_next/static/chunks/80bdb299f9a59635.css",
+      "sha256": "61ce4af1841d4da90d56eeeee4c8c1511c1fe2e6cb85e33de1afdbbc8dee6ef4"
+    },
+    {
+      "url": "https://claude.com/_next/static/chunks/839f9d85581b1266.css",
+      "sha256": "25a1986f3c6af1f253b4a524b66927ee48d6621b52c05b86e221a04f749c6fb9"
+    },
+    {
+      "url": "https://claude.com/_next/static/chunks/a5acebdb5f45c480.css",
+      "sha256": "91acd82f548d90ddf43cb54e7f0039bc3376af968492dcb578e7a374823d3a74"
+    },
+    {
+      "url": "https://claude.com/_next/static/chunks/ad8332eae199ca5c.css",
+      "sha256": "aa1eb8ea18326a965a3310e89c15e56d11029a4d2e6d0dd96242b11208f2b30f"
+    },
+    {
+      "url": "https://claude.com/_next/static/chunks/c7f20b330d0a47b7.css",
+      "sha256": "39be0184bf4fd4a2d4f1f50a441859e651ecaa7e063317c37ca9c9fafbf70f10"
+    },
+    {
+      "url": "https://claude.com/_next/static/chunks/c93592f9df549de5.css",
+      "sha256": "5df93507fad70ca1f2e703e01707f4f164735cda5007cb049dd095aa8349d140"
+    },
+    {
+      "url": "https://claude.com/_next/static/chunks/ffd7b720532ec544.css",
+      "sha256": "a21989f73ad4b6cedc708c66b7e867a31c90824780f83879a99dc20904ca5fde"
+    }
+  ],
+  "observations": {
+    "background": "#FAF9F5",
+    "primaryText": "#141413",
+    "secondaryText": "#30302E",
+    "tertiaryText": "#5E5D59",
+    "clay": "#D97757",
+    "clayHover": "#C6613F",
+    "darkBackground": "#1F1E1D",
+    "darkSurface": "#262624",
+    "fonts": [
+      "anthropicSans",
+      "anthropicSerif",
+      "anthropicMono"
+    ],
+    "body": "15px / 1.5, weight 400",
+    "hero": "Serif, weight 400",
+    "buttonRadius": "8\u201312px",
+    "cardRadius": "12\u201324px"
+  }
+}

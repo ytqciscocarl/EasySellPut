@@ -24,6 +24,13 @@ public sealed class FakeUiPlatform : IUiPlatform
 
     public Task<bool> ConfirmAsync(string title, string message) => Task.FromResult(ConfirmAnswer);
 
+    public bool FailCopy { get; set; }
+    public string? ClipboardText { get; private set; }
+    public Task CopyTextAsync(string text) { if (FailCopy) throw new InvalidOperationException("Clipboard unavailable"); ClipboardText = text; return Task.CompletedTask; }
+    public List<(string Url, string Title)> Articles { get; } = [];
+    public void OpenNewsArticle(string url, string title) => Articles.Add((url, title));
+    public bool UpdateExitRequested {get;private set;}
+    public void ExitForUpdate()=>UpdateExitRequested=true;
     public void OpenUrl(string url) => Opened.Add(url);
 
     public void OpenFolder(string path) => Opened.Add(path);

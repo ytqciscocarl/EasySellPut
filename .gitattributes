@@ -5,3 +5,14 @@
 *.gz binary
 tests/**/Fixtures/** -text
 *.sh text eol=lf
+*.py text eol=lf
+
+# Preserve the verified upstream TradingView distribution bytes.
+src/Meili.Shared/WebCharts/vendor/** -text
+
+# Preserve the pinned Lucide SVG and license bytes used by integrity checks.
+src/Meili.Shared/Assets/NavigationIcons/** -text
+
+# Preserve licensed bundled font files and notices.
+src/Meili.Shared/Assets/Fonts/** -text -whitespace
+*.ttf binary

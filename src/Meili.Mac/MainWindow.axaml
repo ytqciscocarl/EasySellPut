@@ -1,5 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lucide="using:Meili.Mac.Views.Controls"
+        xmlns:chrome="using:Avalonia.Controls.Chrome"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:Meili.Mac.Views.Controls"
         xmlns:vm="using:Meili.Shared.ViewModels"
         x:Class="Meili.Mac.MainWindow"
@@ -7,29 +9,61 @@
         Title="{DynamicResource App_Title}"
         Width="1320" Height="840" MinWidth="980" MinHeight="620"
         WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="{StaticResource WindowHeaderHeight}"
+        WindowDecorationsTheme="{StaticResource AppWindowDecorations}"
         Background="{DynamicResource ApplicationBackgroundBrush}"
-        FontFamily="{StaticResource AppFont}" FontSize="14"
+        FontFamily="{DynamicResource AppFont}" FontSize="{StaticResource BodyFontSize}"
         Icon="avares://MeiliMac/Assets/app-256.png">
-    <Grid RowDefinitions="*,Auto" ColumnDefinitions="220,*">
-        <!-- Navigation (⌘1…⌘9 in this order) -->
-        <DockPanel Grid.Row="0" Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}">
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="12,8" Spacing="6">
-                <Button x:Name="LanguageButton" Classes="Subtle" MinWidth="40" FontWeight="SemiBold"
-                        Content="{DynamicResource Title_LanguageButton}" ToolTip.Tip="{DynamicResource Title_ToggleLanguage}"
-                        Click="OnToggleLanguage" />
-                <Button x:Name="ThemeButton" Classes="Subtle" MinWidth="40" Content="◐"
-                        ToolTip.Tip="{DynamicResource Title_ToggleTheme}" Click="OnToggleTheme" />
-            </StackPanel>
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,14,12,10" Spacing="10">
-                <Image Source="avares://MeiliMac/Assets/app-64.png" Width="22" Height="22" />
-                <TextBlock Text="{DynamicResource Mac_AppShort}" FontWeight="SemiBold" VerticalAlignment="Center" />
-            </StackPanel>
-            <ListBox x:Name="Nav" Classes="Nav" SelectionMode="Single" SelectionChanged="OnNavSelected" />
-        </DockPanel>
-
+    <Window.Resources>
+        <ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceInclude Source="avares://MeiliMac/DesignSystem/WindowChrome.axaml"/></ResourceDictionary.MergedDictionaries></ResourceDictionary>
+    </Window.Resources>
+    <Window.Styles>
+        <Style Selector="ToggleButton.Workspace">
+            <Setter Property="Width" Value="56"/><Setter Property="Height" Value="52"/><Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="18"/><Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template"><ControlTemplate><Grid>
+                <Border Name="Pill" Width="4" Height="8" HorizontalAlignment="Left" VerticalAlignment="Center" CornerRadius="2" Background="{DynamicResource TextFillColorPrimaryBrush}" Opacity="0"/>
+                <Border Name="Tile" Width="44" Height="44" CornerRadius="22" Background="{DynamicResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ContentPresenter Content="{TemplateBinding Content}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                </Border>
+            </Grid></ControlTemplate></Setter>
+        </Style>
+        <Style Selector="ToggleButton.Workspace /template/ Border#Tile"><Setter Property="Transitions"><Transitions><CornerRadiusTransition Property="CornerRadius" Duration="{StaticResource MotionStandardDuration}" Easing="CubicEaseOut"/><BrushTransition Property="Background" Duration="{StaticResource MotionStandardDuration}" Easing="CubicEaseOut"/></Transitions></Setter></Style>
+        <Style Selector="ToggleButton.Workspace /template/ Border#Pill"><Setter Property="Transitions"><Transitions><DoubleTransition Property="Height" Duration="{StaticResource MotionStandardDuration}" Easing="CubicEaseOut"/><DoubleTransition Property="Opacity" Duration="{StaticResource MotionFastDuration}"/></Transitions></Setter></Style>
+        <Style Selector="ToggleButton.Workspace:pointerover /template/ Border#Tile"><Setter Property="CornerRadius" Value="14"/><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/></Style>
+        <Style Selector="ToggleButton.Workspace:pointerover /template/ Border#Pill"><Setter Property="Opacity" Value="1"/></Style>
+        <Style Selector="ToggleButton.Workspace:checked /template/ Border#Tile"><Setter Property="CornerRadius" Value="14"/><Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}"/></Style>
+        <Style Selector="ToggleButton.Workspace:checked"><Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/></Style>
+        <Style Selector="ToggleButton.Workspace:checked /template/ Border#Pill"><Setter Property="Height" Value="32"/><Setter Property="Opacity" Value="1"/></Style>
+        <Style Selector="ToggleButton.Workspace:focus-visible /template/ Border#Tile"><Setter Property="BorderThickness" Value="2"/><Setter Property="BorderBrush" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Style>
+        <Style Selector="Window.ReducedMotion ToggleButton.Workspace /template/ Border"><Setter Property="Transitions" Value="{x:Null}"/></Style>
+        <Style Selector="Button.StatusAction, ToggleButton.StatusAction"><Setter Property="Width" Value="28"/><Setter Property="Height" Value="{StaticResource StatusItemHeight}"/><Setter Property="MinWidth" Value="28"/><Setter Property="MinHeight" Value="{StaticResource StatusItemHeight}"/><Setter Property="Padding" Value="0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Style>
+        <Style Selector="Button.StatusAction:pointerover, ToggleButton.StatusAction:pointerover"><Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/></Style>
+        <Style Selector="ToggleButton.StatusAction:checked"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/><Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}"/></Style>
+    </Window.Styles>
+    <DockPanel>
+    <!-- Native caption buttons remain above this band; content never enters their hit area. -->
+    <Border x:Name="WindowHeader" DockPanel.Dock="Top" Height="{StaticResource WindowHeaderHeight}"
+            Background="{DynamicResource ApplicationBackgroundBrush}"
+            chrome:WindowDecorationProperties.ElementRole="TitleBar">
+    </Border>
+    <Grid RowDefinitions="*,Auto" ColumnDefinitions="64,*">
+        <Border Grid.Column="0" Background="{DynamicResource LayerFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <ScrollViewer x:Name="SidebarScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"><StackPanel HorizontalAlignment="Center" Margin="0,8" Spacing="4">
+                    <ToggleButton x:Name="HomeWorkspace" Classes="Workspace" Click="OnHomeWorkspace" IsChecked="True" ToolTip.Tip="{DynamicResource Nav_Dashboard}" AutomationProperties.Name="{DynamicResource Nav_Dashboard}"><Image Source="avares://MeiliMac/Assets/app-64.png" Width="28" Height="28"/></ToggleButton>
+                    <Border Height="1" Margin="16,4" Background="{DynamicResource ControlStrokeColorDefaultBrush}"/>
+                    <StackPanel x:Name="BuiltinRail" Spacing="4"/>
+                    <Border Height="1" Margin="16,4" Background="{DynamicResource ControlStrokeColorDefaultBrush}"/>
+                    <StackPanel x:Name="WebsiteRail" Spacing="4"/>
+                    <ToggleButton x:Name="AddWebsite" Classes="Workspace" Click="OnAddWebsite" ToolTip.Tip="{DynamicResource Web_Add}" AutomationProperties.Name="{DynamicResource Web_Add}"/>
+                </StackPanel></ScrollViewer>
+            </DockPanel>
+        </Border>
         <!-- Page host -->
         <Panel Grid.Row="0" Grid.Column="1">
-            <ContentControl x:Name="PageHost" />
+            <ContentControl x:Name="PageHost" /><Grid x:Name="WebTabHost" IsVisible="False"/>
 
             <!-- In-app alert / error banner (always shown, even when notifications are off) -->
             <Border x:Name="Banner" IsVisible="False" Classes="InfoBar" Margin="24,12" MaxWidth="640"
@@ -57,22 +91,36 @@
         </Panel>
 
         <!-- Status bar -->
-        <Border Grid.Row="1" Grid.ColumnSpan="2" Padding="16,6" BorderThickness="0,1,0,0"
+        <Border x:Name="BottomStatusBar" Grid.Row="1" Grid.ColumnSpan="2" Padding="16,6" BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 Background="{DynamicResource LayerFillColorDefaultBrush}">
             <DockPanel LastChildFill="False">
+                <StackPanel x:Name="ShellUtilities" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <ToggleButton x:Name="SettingsButton" Classes="StatusAction" Click="OnSettings" ToolTip.Tip="{DynamicResource Nav_Settings}" AutomationProperties.Name="{DynamicResource Nav_Settings}"/>
+                    <Button x:Name="LanguageButton" Classes="StatusAction" Click="OnToggleLanguage" ToolTip.Tip="{DynamicResource Title_ToggleLanguage}" AutomationProperties.Name="{DynamicResource Title_ToggleLanguage}"/>
+                    <Button x:Name="ThemeButton" Classes="StatusAction" Click="OnToggleTheme" ToolTip.Tip="{DynamicResource Title_ToggleTheme}" AutomationProperties.Name="{DynamicResource Title_ToggleTheme}"/>
+                    <Button x:Name="BackgroundButton" Classes="StatusAction" Click="OnBackground" ToolTip.Tip="{DynamicResource Bg_Run}" AutomationProperties.Name="{DynamicResource Bg_Run}"/>
+                    <ToggleButton x:Name="MotionButton" Classes="StatusAction" Click="OnToggleMotion" ToolTip.Tip="{DynamicResource Web_Motion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
+                </StackPanel>
+
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{Binding SessionBrush}" />
-                    <TextBlock Classes="Caption" Text="{Binding SessionText}" FontWeight="SemiBold" Margin="0,0,14,0" />
-                    <TextBlock Classes="Caption" Text="{Binding ClockText}" />
+                    <controls:AppHelp x:Name="MarketStatusIndicator" Height="{StaticResource StatusItemHeight}" MinHeight="{StaticResource StatusItemHeight}" Classes="StatusEntry" Width="NaN" HelpText="{Binding MarketStatusTip}" MinWidth="0" Padding="4,0" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" AutomationProperties.AutomationId="MarketStatusIndicator" AutomationProperties.Name="{Binding MarketStatusTip}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse Classes="StatusDot" Margin="0,0,6,0" Fill="{Binding SourcesBrush}"/><TextBlock Classes="StatusText" x:Name="StatusMarketText" Text="{Binding MarketStatusText}" TextWrapping="NoWrap" VerticalAlignment="Center"/></StackPanel>
+                    </controls:AppHelp>
+                    <TextBlock Classes="StatusText" x:Name="StatusClockText" Text="{Binding ClockText}" />
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Ellipse Width="8" Height="8" Margin="0,0,6,0" Fill="{Binding SourcesBrush}" />
-                    <TextBlock Classes="Caption" Text="{Binding SourcesText}" Margin="0,0,18,0" />
-                    <TextBlock Classes="Caption" Text="{Binding NetworkText}" Margin="0,0,18,0" />
-                    <TextBlock Classes="Caption" Text="{Binding DataDirText}" />
+                    <Button x:Name="UpdateStatusIndicator" Classes="StatusEntry" x:DataType="vm:UpdateViewModel" IsVisible="{Binding HasAvailableUpdate}" Command="{Binding OpenUpdatePromptCommand}" MinWidth="0" Padding="8,0" Margin="0,0,12,0" ToolTip.Tip="{DynamicResource Upd_ViewUpdate}" AutomationProperties.AutomationId="UpdateStatusIndicator" AutomationProperties.Name="{Binding UpdateBadgeText}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><lucide:LucideIcon VerticalAlignment="Center" Kind="Download" Width="14" Height="14" Margin="0,0,6,0"/><TextBlock Classes="StatusText" x:Name="StatusUpdateText" Text="{Binding UpdateBadgeText}" TextWrapping="NoWrap" VerticalAlignment="Center"/></StackPanel>
+                    </Button>
+                    <Button x:Name="McpStatusIndicator" Classes="StatusEntry" Command="{Binding CopyMcpSetupCommand}" MinWidth="0" Padding="4,0" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" ToolTip.Tip="{Binding McpStatusTip}" AutomationProperties.AutomationId="McpStatusIndicator" AutomationProperties.Name="{DynamicResource Set_AiUniversal}" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse Classes="StatusDot" Margin="0,0,6,0" Fill="{Binding McpStatusBrush}"/><TextBlock Classes="StatusText" x:Name="StatusMcpText" Text="{Binding McpStatusText}" TextWrapping="NoWrap"/><lucide:LucideIcon VerticalAlignment="Center" Kind="Copy" Width="10" Height="10" Margin="6,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/></StackPanel>
+                    </Button>
+
+
                 </StackPanel>
             </DockPanel>
         </Border>
     </Grid>
+    </DockPanel>
 </Window>

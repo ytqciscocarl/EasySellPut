@@ -21,7 +21,6 @@ public partial class MainWindow : Window
         AppPage.News, AppPage.Alerts, AppPage.DataSources, AppPage.Settings,
     ];
 
-    private static readonly string[] Glyphs = ["⌂", "☆", "▤", "▦", "↗", "≡", "⚑", "⇄", "⚙"];
 
     private readonly SettingsStore _settings = AppServices.Get<SettingsStore>();
     private readonly MacTheme _theme = AppServices.Get<MacTheme>();
@@ -33,14 +32,23 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _bannerTimer = new(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(12) };
     private bool _allowClose;
     private bool _asking;
-    private bool _syncingNav;
 
     public MainWindow()
     {
         InitializeComponent();
+        // Follow actual platform support: do not leave a second band below server decorations.
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == IsExtendedIntoWindowDecorationsProperty || e.Property == WindowStateProperty)
+                UpdateWindowHeader();
+        };
+        Opened += (_, _) => UpdateWindowHeader();
+        UpdateWindowHeader();
         DataContext = AppServices.Get<ShellViewModel>();
-        foreach (var (page, i) in PageOrder.Select((p, i) => (p, i)))
-            Nav.Items.Add(NavItem(page, Glyphs[i]));
+        SetupWorkspace();
+        SetupNewsSplit();
+        SetupBackgroundLifecycle();
+        SetupUpdateNotifications();
         RestorePlacement();
         var hub = AppServices.Get<NavigationHub>();
         EventHandler<NavigationRequest> onRequest = (_, e) => Dispatcher.UIThread.Post(() => { if (!_closed) OnNavigateRequested(e); });
@@ -57,6 +65,9 @@ public partial class MainWindow : Window
         Navigate(StartPageFromArgs() ?? AppPage.Dashboard);
     }
 
+    private void UpdateWindowHeader() => WindowHeader.IsVisible =
+        IsExtendedIntoWindowDecorations && WindowState != WindowState.FullScreen;
+
     private bool _closed;
     internal AppPage CurrentPage { get; private set; }
     internal Control? CurrentView => PageHost.Content as Control;
@@ -66,31 +77,13 @@ public partial class MainWindow : Window
 
     public static string TitleKey(AppPage page) => "Nav_" + page;
 
-    private static ListBoxItem NavItem(AppPage page, string glyph)
-    {
-        var text = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
-        text[!TextBlock.TextProperty] = text.GetResourceObservable(TitleKey(page)).ToBinding();
-        return new ListBoxItem
-        {
-            Tag = page,
-            Content = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 10,
-                Children = { new TextBlock { Text = glyph, Width = 18, TextAlignment = Avalonia.Media.TextAlignment.Center }, text },
-            },
-        };
-    }
-
     public void Navigate(AppPage page)
     {
         if (!_pages.TryGetValue(page, out var view))
             _pages[page] = view = CreatePage(page);
         CurrentPage = page;
-        PageHost.Content = view;
-        _syncingNav = true;
-        Nav.SelectedIndex = PageOrder.ToList().IndexOf(page);
-        _syncingNav = false;
+        ShowMarketWorkspace();
+        PageHost.Content = _presentationSuspended?null:view;
     }
 
     private static Control CreatePage(AppPage page) => page switch
@@ -105,12 +98,6 @@ public partial class MainWindow : Window
         AppPage.DataSources => new DataSourcesPage(),
         _ => new SettingsPage(),
     };
-
-    private void OnNavSelected(object? sender, SelectionChangedEventArgs e)
-    {
-        if (_syncingNav || Nav.SelectedItem is not ListBoxItem { Tag: AppPage page }) return;
-        Navigate(page);
-    }
 
     private void OnNavigateRequested(NavigationRequest e)
     {
@@ -133,7 +120,7 @@ public partial class MainWindow : Window
 
     // ---------------- menu actions ----------------
 
-    public void RefreshCurrent() => CommandOf(CurrentView?.DataContext, "RefreshCommand", "RecheckCommand")?.Execute(null);
+    public void RefreshCurrent() { if (_activeWebsite is { } id) _webTabs[id].ReloadPage(); else CommandOf(CurrentView?.DataContext, "RefreshCommand", "RecheckCommand")?.Execute(null); }
 
     public void ExportCurrent() => CommandOf(CurrentView?.DataContext, "ExportCommand")?.Execute(null);
 
@@ -171,9 +158,11 @@ public partial class MainWindow : Window
 
     private void ShowBanner(string title, string body)
     {
+        var changed=!Banner.IsVisible || BannerTitle.Text!=title || BannerBody.Text!=body;
         BannerTitle.Text = title;
         BannerBody.Text = body;
         Banner.IsVisible = true;
+        if(changed)Meili.Mac.Views.Controls.AppMotion.Enter(Banner);
         _bannerTimer.Stop();
         _bannerTimer.Start();
     }
@@ -195,7 +184,7 @@ public partial class MainWindow : Window
 
     private void OnWindowTextInput(object? sender, TextInputEventArgs e)
     {
-        if (Wizard.IsVisible || FocusManager?.GetFocusedElement() is TextBox or ComboBox) return;
+        if (_activeWebsite is not null || Wizard.IsVisible || FocusManager?.GetFocusedElement() is TextBox or ComboBox) return;
         if (e.Text is not { Length: 1 } t || !(char.IsAsciiLetterOrDigit(t[0]) || t[0] is '^' or '.')) return;
         ShowFromDock();
         Wizard.IsVisible = true;

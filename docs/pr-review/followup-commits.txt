@@ -1,0 +1,8 @@
+4fec1731e18cd839fbef91e756b41299cec921ff Capture native Windows review evidence on a Full HD Actions desktop
+e2f4e541a55be4b90ff83aeb9d28df1088e666bf Handle hosted Windows desktops without enumerated display modes
+50135a81eb74377d84a93b4834d2cca9d0057476 Add genuine Full HD review screenshots and upstream comparison evidence
+e9d4c5a7d5150383b3370ef4123a620387c766cc Notify available updates with a shared reminder and conditional footer entry
+757ce846dc626c8f2f87b5467e7c64c22617123f Document Full HD native split view and conditional update reminder screenshots
+ddfca7a3d9f1de2f3c01a91d177dc1f87bd9cdf0 Add current upstream diff inventory including update reminder changes
+9f1119a2845bed045ab36cfa49e4b489b9969274 Merge chart controls and provenance into one compact status row
+045f680286c5a87fd566bc3d64873c5b25311380 Remove trailing whitespace from chart status layout

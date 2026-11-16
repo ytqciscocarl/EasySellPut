@@ -1,121 +1,137 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lucide="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:cs="using:Meili.Core.Settings"
              xmlns:controls="using:Meili.Mac.Views.Controls"
-             xmlns:sp="using:ScottPlot.Avalonia"
+             xmlns:platform="using:Meili.Mac.Platform"
+             Classes="ChartWorkspace"
              x:Class="Meili.Mac.Views.ChartsPage"
              x:DataType="vm:ChartsViewModel">
-    <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Margin="32,20,32,8">
-            <TextBlock Classes="PageTitle" Text="{DynamicResource Ch_Title}" />
-            <TextBlock Classes="Secondary" Text="{DynamicResource Ch_Desc}" Margin="0,0,0,12" />
-            <DockPanel Margin="0,0,0,10">
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Content="{DynamicResource Ch_Export}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Ch_Refresh}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Accent" Command="{Binding LoadFromBoxCommand}" Content="{DynamicResource Ch_Load}" />
-                <controls:SymbolBox x:Name="SymbolInput" MinWidth="220" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}"
-                                    CommitCommand="{Binding LoadFromBoxCommand}" />
-            </DockPanel>
-            <ItemsControl ItemsSource="{Binding Ranges}" Margin="0,0,0,10">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ChartRangeTab">
-                        <Button Classes="Chip" Classes.Selected="{Binding IsSelected}" Content="{Binding Title}" Margin="0,0,6,0" Padding="10,6"
-                                Command="{Binding $parent[UserControl].((vm:ChartsViewModel)DataContext).SelectRangeCommand}" CommandParameter="{Binding Kind}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <WrapPanel Margin="0,0,0,8">
-                <CheckBox Margin="0,0,16,0" Content="{Binding MaLabel}" IsChecked="{Binding ShowMa}" />
-                <CheckBox Margin="0,0,16,0" Content="{Binding EmaLabel}" IsChecked="{Binding ShowEma}" />
-                <CheckBox Margin="0,0,16,0" Content="{Binding BollLabel}" IsChecked="{Binding ShowBoll}" />
-                <CheckBox Margin="0,0,16,0" Content="{DynamicResource Ch_Volume}" IsChecked="{Binding ShowVolume}" />
-                <CheckBox Margin="0,0,16,0" Content="{Binding MacdLabel}" IsChecked="{Binding ShowMacd}" />
-                <CheckBox Margin="0,0,16,0" Content="{Binding RsiLabel}" IsChecked="{Binding ShowRsi}" />
-                <CheckBox Margin="0,0,16,0" Content="{Binding KdjLabel}" IsChecked="{Binding ShowKdj}" />
-                <Border Width="1" Height="18" Margin="4,0,12,0" VerticalAlignment="Center" Background="{DynamicResource ControlStrokeColorDefaultBrush}" />
-                <CheckBox Margin="0,0,16,0" Content="{DynamicResource Ch_AdjToggle}" IsChecked="{Binding DividendAdjusted}" ToolTip.Tip="{DynamicResource Ch_AdjToggleTip}" />
-                <Border Classes="Tag" VerticalAlignment="Center" ToolTip.Tip="{DynamicResource Ch_AdjToggleTip}" IsVisible="{Binding AdjustText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                    <TextBlock Classes="Caption" Text="{Binding AdjustText}" />
-                </Border>
-            </WrapPanel>
-            <WrapPanel Margin="0,0,0,8">
-                <Button Margin="0,0,6,0" Content="{DynamicResource Ch_DrawHLine}" ToolTip.Tip="{DynamicResource Ch_DrawHLineHint}"
-                        Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.HorizontalLine}" />
-                <Button Margin="0,0,6,0" Content="{DynamicResource Ch_DrawTrend}" ToolTip.Tip="{DynamicResource Ch_DrawTrendHint1}"
-                        Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.TrendLine}" />
-                <Button Margin="0,0,16,0" Content="{DynamicResource Ch_DrawClear}" Command="{Binding ClearDrawingsCommand}" />
-                <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,0,8,0" Text="{DynamicResource Ch_Compare}" />
-                <TextBox x:Name="CompareBox" Width="120" Text="{Binding CompareText}" PlaceholderText="{DynamicResource Ch_ComparePlaceholder}" Margin="0,0,6,0" />
-                <Button Content="{DynamicResource Ch_CompareApply}" Command="{Binding ApplyCompareCommand}" />
-                <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="10,0,0,0" Text="{Binding CompareStatus}" Foreground="{DynamicResource DegradedBrush}" />
-            </WrapPanel>
-            <Expander Margin="0,0,0,8" Header="{DynamicResource Ch_Params}" HorizontalAlignment="Stretch">
-                <WrapPanel Margin="0,8,0,0">
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PMa}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding MaPeriod}" Minimum="1" Maximum="250" Increment="1" FormatString="0" />
+    <Grid RowDefinitions="Auto,*,Auto" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+        <Border Grid.Row="0" Padding="12,8" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+            <Grid x:Name="ChartToolbar" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal">
+                        <controls:SymbolBox x:Name="SymbolInput" Width="144" MinWidth="132" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}" CommitCommand="{Binding LoadFromBoxCommand}"/>
+                        <Button Classes="Icon" Margin="6,0,0,0" AutomationProperties.Name="{DynamicResource Ch_Load}" ToolTip.Tip="{DynamicResource Ch_Load}" Command="{Binding LoadFromBoxCommand}" IsEnabled="{Binding !IsBusy}"><lucide:LucideIcon Kind="CornerDownLeft"/></Button>
                     </StackPanel>
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PEma}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding EmaPeriod}" Minimum="1" Maximum="250" Increment="1" FormatString="0" />
+                <ScrollViewer x:Name="RangeScroller" Grid.Column="1" Margin="12,0,6,0" VerticalAlignment="Center" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="RangeTabs" ItemsSource="{Binding Ranges}" Margin="0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ChartRangeTab">
+                                <Button Classes="Chip" Classes.Selected="{Binding IsSelected}" Content="{Binding CompactTitle}" AutomationProperties.Name="{Binding Title}" ToolTip.Tip="{Binding Title}" Margin="0,0,4,0" Padding="6,5" Command="{Binding $parent[UserControl].((vm:ChartsViewModel)DataContext).SelectRangeCommand}" CommandParameter="{Binding Kind}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
+                        <ToggleButton x:Name="InspectorToggle" Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Tools}" IsChecked="{Binding ShowInspector, Mode=TwoWay}" AutomationProperties.AutomationId="ChartsTools"/>
+                        <Button Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Refresh}" Command="{Binding RefreshCommand}" IsEnabled="{Binding !IsBusy}"/>
+                        <Button Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Export}" Command="{Binding ExportCommand}"/>
                     </StackPanel>
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PBoll}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding BollPeriod}" Minimum="2" Maximum="250" Increment="1" FormatString="0" />
+            </Grid>
+        </Border>
+        <DockPanel Grid.Row="1">
+            <Border DockPanel.Dock="Left" Width="72" Padding="6,12" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                <StackPanel>
+                    <ToggleButton Classes="DrawTool" Padding="6,6" IsChecked="{Binding IsHorizontalDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip.Tip="{DynamicResource Ch_DrawHLineHint}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.HorizontalLine}" AutomationProperties.Name="{DynamicResource Ch_HLineShort}"><StackPanel Spacing="4" HorizontalAlignment="Center"><lucide:LucideIcon Kind="Minus" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_HLineShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ToggleButton>
+                    <ToggleButton Classes="DrawTool" Padding="6,6" IsChecked="{Binding IsTrendDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip.Tip="{DynamicResource Ch_DrawTrendHint1}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.TrendLine}" AutomationProperties.Name="{DynamicResource Ch_TrendShort}"><StackPanel Spacing="4" HorizontalAlignment="Center"><lucide:LucideIcon Kind="TrendUp" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_TrendShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ToggleButton>
+                    <Button Margin="0,0,0,8"  Classes="DrawTool" Command="{Binding ClearDrawingsCommand}" AutomationProperties.Name="{DynamicResource Ch_ClearAllShort}"><StackPanel Spacing="4" HorizontalAlignment="Center"><lucide:LucideIcon Kind="Trash" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_ClearAllShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></Button>
+                </StackPanel>
+            </Border>
+            <controls:AppDrawer x:Name="ChartInspector" ReturnFocusTarget="{Binding ElementName=InspectorToggle}" AutomationProperties.Name="{DynamicResource Ch_Indicators}" DockPanel.Dock="Right" Width="280" BorderThickness="1,0,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" IsOpen="{Binding ShowInspector, Mode=TwoWay}">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <TextBlock Classes="CardTitle" Text="{DynamicResource Ch_Indicators}" Margin="0,0,0,12"/>
+                        <StackPanel Spacing="6">
+                            <CheckBox Margin="0,0,16,0" Content="{Binding MaLabel}" IsChecked="{Binding ShowMa}"/>
+                            <CheckBox Margin="0,0,16,0" Content="{Binding EmaLabel}" IsChecked="{Binding ShowEma}"/>
+                            <CheckBox Margin="0,0,16,0" Content="{Binding BollLabel}" IsChecked="{Binding ShowBoll}"/>
+                            <CheckBox Margin="0,0,16,0" Content="{DynamicResource Ch_Volume}" IsChecked="{Binding ShowVolume}"/>
+                            <CheckBox Margin="0,0,16,0" Content="{Binding MacdLabel}" IsChecked="{Binding ShowMacd}"/>
+                            <CheckBox Margin="0,0,16,0" Content="{Binding RsiLabel}" IsChecked="{Binding ShowRsi}"/>
+                            <CheckBox Margin="0,0,16,0" Content="{Binding KdjLabel}" IsChecked="{Binding ShowKdj}"/>
+                        </StackPanel>
+                        <Expander Margin="0,0,0,8" Header="{DynamicResource Ch_Params}" HorizontalAlignment="Stretch">
+                            <WrapPanel Margin="0,8,0,0">
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PMa}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding MaPeriod}" Minimum="1" Maximum="250" Increment="1" FormatString="0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PEma}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding EmaPeriod}" Minimum="1" Maximum="250" Increment="1" FormatString="0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PBoll}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding BollPeriod}" Minimum="2" Maximum="250" Increment="1" FormatString="0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PBollWidth}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding BollWidth}" Minimum="0.5" Maximum="5" Increment="0.1" FormatString="0.00"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PMacdFast}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding MacdFast}" Minimum="1" Maximum="250" Increment="1" FormatString="0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PMacdSlow}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding MacdSlow}" Minimum="2" Maximum="251" Increment="1" FormatString="0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PMacdSignal}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding MacdSignal}" Minimum="1" Maximum="250" Increment="1" FormatString="0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PRsi}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding RsiPeriod}" Minimum="1" Maximum="250" Increment="1" FormatString="0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PKdj}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding KdjPeriod}" Minimum="1" Maximum="250" Increment="1" FormatString="0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PKdjM1}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding KdjM1}" Minimum="1" Maximum="250" Increment="1" FormatString="0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Classes="Caption" Text="{DynamicResource Ch_PKdjM2}" Margin="0,0,0,4"/>
+                                    <NumericUpDown Width="104" Value="{Binding KdjM2}" Minimum="1" Maximum="250" Increment="1" FormatString="0"/>
+                                </StackPanel>
+                                <Button VerticalAlignment="Bottom" Margin="0,0,0,8" Content="{DynamicResource Ch_PReset}" Command="{Binding ResetIndicatorsCommand}"/>
+                            </WrapPanel>
+                        </Expander>
+                        <StackPanel Margin="0,12,0,0">
+                            <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,0,8,0" Text="{DynamicResource Ch_Compare}"/>
+                            <TextBox x:Name="CompareBox" HorizontalAlignment="Stretch" Text="{Binding CompareText}" PlaceholderText="{DynamicResource Ch_ComparePlaceholder}" Margin="0,6,0,6"/>
+                            <Button Content="{DynamicResource Ch_CompareApply}" Command="{Binding ApplyCompareCommand}"/>
+                            <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,6,0,0" Text="{Binding CompareStatus}" Foreground="{DynamicResource DegradedBrush}"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,12,0,0">
+                            <CheckBox Margin="0,0,16,0" Content="{DynamicResource Ch_AdjToggle}" IsChecked="{Binding DividendAdjusted}" ToolTip.Tip="{DynamicResource Ch_AdjToggleTip}"/>
+                        </StackPanel>
                     </StackPanel>
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PBollWidth}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding BollWidth}" Minimum="0.5" Maximum="5" Increment="0.1" FormatString="0.00" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PMacdFast}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding MacdFast}" Minimum="1" Maximum="250" Increment="1" FormatString="0" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PMacdSlow}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding MacdSlow}" Minimum="2" Maximum="251" Increment="1" FormatString="0" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PMacdSignal}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding MacdSignal}" Minimum="1" Maximum="250" Increment="1" FormatString="0" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PRsi}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding RsiPeriod}" Minimum="1" Maximum="250" Increment="1" FormatString="0" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PKdj}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding KdjPeriod}" Minimum="1" Maximum="250" Increment="1" FormatString="0" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PKdjM1}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding KdjM1}" Minimum="1" Maximum="250" Increment="1" FormatString="0" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,8">
-                        <TextBlock Classes="Caption" Text="{DynamicResource Ch_PKdjM2}" Margin="0,0,0,4" />
-                        <NumericUpDown Width="130" Value="{Binding KdjM2}" Minimum="1" Maximum="250" Increment="1" FormatString="0" />
-                    </StackPanel>
-                    <Button VerticalAlignment="Bottom" Margin="0,0,0,8" Content="{DynamicResource Ch_PReset}" Command="{Binding ResetIndicatorsCommand}" />
-                </WrapPanel>
-            </Expander>
-            <TextBlock Text="{Binding AdjustWarning}" FontSize="12" Margin="0,0,0,6" TextWrapping="Wrap" Foreground="{DynamicResource DegradedBrush}"
-                       IsVisible="{Binding AdjustWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-            <StackPanel Orientation="Horizontal">
-                <ProgressBar IsIndeterminate="True" Width="60" Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />
-                <TextBlock Classes="Caption" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,16,0" />
-                <TextBlock Classes="Caption Num" Text="{Binding CrosshairText}" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-            </StackPanel>
-        </StackPanel>
-        <Grid x:Name="PlotGrid" Margin="16,0,16,16" RowDefinitions="2*,0.6*,0.7*,0.55*,0.55*">
-            <sp:AvaPlot x:Name="PricePlot" Grid.Row="0" MinHeight="160" />
-            <sp:AvaPlot x:Name="VolumePlot" Grid.Row="1" MinHeight="70" />
-            <sp:AvaPlot x:Name="MacdPlot" Grid.Row="2" MinHeight="80" />
-            <sp:AvaPlot x:Name="RsiPlot" Grid.Row="3" MinHeight="70" />
-            <sp:AvaPlot x:Name="KdjPlot" Grid.Row="4" MinHeight="70" />
-        </Grid>
-    </DockPanel>
+                </ScrollViewer>
+            </controls:AppDrawer>
+            <platform:WebChartControl x:Name="Chart" MinHeight="220"/>
+        </DockPanel>
+        <Border x:Name="ChartStatusBar" Grid.Row="2" Padding="12,2" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+          <StackPanel>
+            <TextBlock Text="{Binding AdjustWarning}" FontSize="12" Margin="0,0,0,4" TextWrapping="Wrap" Foreground="{DynamicResource DegradedBrush}" IsVisible="{Binding AdjustWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*">
+
+              <controls:AppHelp x:Name="ChartControlsHelp" Grid.Column="0" HelpText="{DynamicResource Ch_ControlHelp}" Margin="0,0,8,0"/>
+              <controls:AppLoading Grid.Column="1" Margin="0,0,8,0" IsVisible="{Binding IsBusy}"/>
+              <TextBlock x:Name="ChartSourceStatus" Grid.Column="2" Classes="Caption" Text="{Binding StatusText}" ToolTip.Tip="{Binding StatusText}" MaxWidth="180" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,12,0"/>
+              <TextBlock x:Name="ChartAdjustmentStatus" Grid.Column="3" Classes="Caption" Text="{Binding AdjustText}" ToolTip.Tip="{Binding AdjustText}" MaxWidth="136" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,0,12,0" VerticalAlignment="Center"/>
+              <TextBlock x:Name="ChartCrosshairStatus" Grid.Column="4" Classes="Caption Num" Text="{Binding CrosshairText}" ToolTip.Tip="{Binding CrosshairText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+            </Grid>
+          </StackPanel>
+        </Border>
+    </Grid>
 </UserControl>

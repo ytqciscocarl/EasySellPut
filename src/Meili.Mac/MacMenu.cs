@@ -23,7 +23,7 @@ public static class MacMenu
                 new NativeMenuItemSeparator(),
                 Item(loc["Menu_Settings"], "Meta+OemComma", () => window.Navigate(AppPage.Settings)),
                 new NativeMenuItemSeparator(),
-                Item(loc["Menu_Hide"], "Meta+H", () => { if (OperatingSystem.IsMacOS()) MacNative.HideApp(); }),
+                Item(loc["Menu_Hide"], "Meta+H", () => { window.RunInBackground();foreach(var panel in desktop.Windows.OfType<QuotePanelWindow>())panel.HidePanel();if (OperatingSystem.IsMacOS()) MacNative.HideApp(); }),
                 Item(loc["Menu_Quit"], "Meta+Q", () => desktop.TryShutdown()),
             });
             var pages = new NativeMenu();

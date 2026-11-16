@@ -16,6 +16,7 @@ public sealed class SettingsStore
     };
 
     private readonly object _gate = new();
+    private readonly SnapshotFile _snapshot;
     public string FilePath { get; }
     public AppSettings Current { get; private set; } = new();
 
@@ -25,6 +26,7 @@ public sealed class SettingsStore
     {
         Directory.CreateDirectory(dataDirectory);
         FilePath = Path.Combine(dataDirectory, "settings.json");
+        _snapshot = new SnapshotFile(FilePath);
     }
 
     public AppSettings Load()
@@ -35,7 +37,7 @@ public sealed class SettingsStore
             {
                 if (File.Exists(FilePath))
                 {
-                    var text = File.ReadAllText(FilePath);
+                    var text = _snapshot.Read()!;
                     Current = (JsonSerializer.Deserialize<AppSettings>(text, Json) ?? new AppSettings()).Normalize();
                     return Current;
                 }
@@ -47,6 +49,7 @@ public sealed class SettingsStore
                 try { File.Copy(FilePath, FilePath + ".corrupt-" + DateTime.Now.ToString("yyyyMMddHHmmss"), true); }
                 catch (Exception copyEx) { Diagnostics.AppLog.Warn("settings", "could not keep a copy of the corrupt file", copyEx); }
             }
+            _snapshot.Read();
             Current = new AppSettings().Normalize();
             return Current;
         }
@@ -57,9 +60,7 @@ public sealed class SettingsStore
         lock (_gate)
         {
             Current = (settings ?? Current).Normalize();
-            var tmp = FilePath + ".tmp";
-            File.WriteAllText(tmp, JsonSerializer.Serialize(Current, Json));
-            File.Move(tmp, FilePath, overwrite: true);
+            _snapshot.Write(JsonSerializer.Serialize(Current, Json));
         }
         Saved?.Invoke(this, Current);
     }

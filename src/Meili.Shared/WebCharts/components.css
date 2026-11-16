@@ -1,0 +1,28 @@
+/* Shared embedded components. Layout/data visualization stays in each renderer. */
+html,body{font-family:var(--font-sans);font-variant-numeric:tabular-nums}
+button,input,select{font-family:inherit;font-size:14px;border-radius:var(--control-radius);min-height:var(--control-height);transition:background-color var(--motion-fast-ms) ease-out,border-color var(--motion-fast-ms) ease-out,box-shadow var(--motion-fast-ms) ease-out;box-shadow:none}
+button{background:var(--control);border:1px solid var(--border);color:var(--text);cursor:pointer}
+button:hover:not(:disabled){background:var(--hover,var(--control));border-color:var(--muted)}
+button:active:not(:disabled){background:var(--pressed,var(--control))}
+button:disabled,input:disabled,select:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--focus,#c46849);outline-offset:2px}
+input,select{background:var(--input,var(--background));border:1px solid var(--border);color:var(--text);padding:5px 10px}
+input::placeholder{color:var(--muted);opacity:1}
+a{color:var(--link,var(--text))}
+.panel{border-radius:var(--card-radius);background:var(--background)}
+.panelhead h2,.event-detail-title{font-weight:600}
+#event-filters label{border-radius:var(--control-radius);transition:background-color var(--motion-fast-ms) ease-out,border-color var(--motion-fast-ms) ease-out}
+#event-filters label.active{border-color:var(--border);background:var(--control)}
+#event-detail{background:var(--background)}
+#event-tooltip,#drawing-panel{border-radius:12px;box-shadow:0 8px 24px #14141318}
+#drawing-overlay{border-radius:0}
+#drawing-close,.event-close{align-items:center;justify-content:center}
+#right-tools button{border-radius:8px}
+#right-tools button[aria-pressed=true]{background:var(--control);color:var(--text);box-shadow:inset 2px 0 var(--brand,#d97757)}
+#drawing-save{background:var(--text);color:var(--background)}
+#drawing-delete{color:var(--danger,#a53e36)}
+input[type=checkbox],input[type=range]{accent-color:var(--text)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+:root[data-reduced-motion=true] *, :root[data-reduced-motion=true] *::before{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+
+button{transition:background-color var(--motion-fast-ms) ease-out,border-color var(--motion-fast-ms) ease-out,opacity var(--motion-fast-ms) ease-out}button:active:not(:disabled),button.keyboard-pressed:not(:disabled){opacity:.9}

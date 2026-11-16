@@ -34,4 +34,5 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Meili.Mac.Tests" />
   </ItemGroup>
+  <ItemGroup><AvaloniaResource Include="../Meili.Shared/Assets/Fonts/**" Link="Assets/Fonts/%(Filename)%(Extension)" /></ItemGroup>
 </Project>

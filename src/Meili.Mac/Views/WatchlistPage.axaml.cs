@@ -11,6 +11,9 @@ public partial class WatchlistPage : UserControl
         InitializeComponent();
         var vm = AppServices.Get<WatchlistViewModel>();
         DataContext = vm;
+        AttachedToVisualTree+=(_,_)=>{vm.PropertyChanged+=OnGroupEditorChanged;FocusGroupEditor();};
+        DetachedFromVisualTree+=(_,_)=>vm.PropertyChanged-=OnGroupEditorChanged;
+
         PageLife.Bind(this, vm.ActivateAsync, vm.Deactivate);
         QueryBox.KeyDown += OnQueryKeyDown;
         SuggestionList.KeyDown += OnSuggestionKeyDown;
@@ -21,6 +24,21 @@ public partial class WatchlistPage : UserControl
         QueryBox.LostFocus += (_, _) => { if (!SuggestionList.IsKeyboardFocusWithin && !SuggestionList.IsPointerOver) vm.HideSuggestions(); };
         // D1: double-click a row → its K-line chart.
         QuoteList.DoubleTapped += (_, _) => { if (vm.SelectedRow is not null) vm.OpenChartCommand.Execute(null); };
+    }
+
+    private void OnGroupEditorChanged(object? sender,System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if(e.PropertyName is nameof(WatchlistViewModel.IsAddingGroup) or nameof(WatchlistViewModel.IsRenamingGroup))FocusGroupEditor();
+    }
+    private void FocusGroupEditor()=>Avalonia.Threading.Dispatcher.UIThread.Post(()=>
+    {
+        if(!IsEffectivelyVisible)return;
+        if(Vm.IsAddingGroup||Vm.IsRenamingGroup){GroupDraftInput.Focus();GroupDraftInput.SelectAll();}
+    });
+    private void OnGroupDraftKeyDown(object? sender,KeyEventArgs e)
+    {
+        if(e.Key==Key.Enter){Vm.ConfirmGroupEditCommand.Execute(null);e.Handled=true;}
+        if(e.Key==Key.Escape){Vm.CancelGroupEditCommand.Execute(null);QueryBox.Focus();e.Handled=true;}
     }
 
     private WatchlistViewModel Vm => (WatchlistViewModel)DataContext!;

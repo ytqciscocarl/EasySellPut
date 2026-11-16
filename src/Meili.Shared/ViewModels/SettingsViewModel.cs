@@ -1,3 +1,4 @@
+using Meili.Automation;
 using System.Diagnostics;
 using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -28,15 +29,67 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] public partial int CloseActionIndex { get; set; }
     [ObservableProperty] public partial string FixedRateError { get; set; } = "";
 
+    private readonly McpConnectionSetup _connection;
+    public bool IsTransientConnection => !_connection.Windows && _connection.Executable.Contains("/AppTranslocation/", StringComparison.Ordinal);
+    public bool CanConnectAi => !IsTransientConnection && File.Exists(_connection.Executable);
+    public string McpJson => CanConnectAi ? _connection.Json : "";
+    public string McpToml => CanConnectAi ? _connection.Toml : "";
+    public string CodexSetupCommand => CanConnectAi ? _connection.CodexSetupCommand : "";
+    public string ClaudeSetupCommand => CanConnectAi ? _connection.ClaudeSetupCommand : "";
+    public string CodexAvailability => _loc[AiClientLocator.Find("codex") is null ? "Set_AiCheckTerminal" : "Set_AiDetected"];
+    public string ClaudeAvailability => _loc[AiClientLocator.Find("claude-code") is null ? "Set_AiCheckTerminal" : "Set_AiDetected"];
+    public string AiTerminalLabel => _loc[_connection.Windows ? "Set_AiStepPowerShell" : "Set_AiStepTerminal"];
+    public string AiConnectionStatus => _copyState switch
+    {
+        1=>_loc["Set_AiCopied"],2=>_loc["Set_AiCopyFailed"],3=>_loc["Set_AiTemplateCopied"],4=>_loc["Set_AiPromptCopied"],5=>_loc["Status_McpCopied"],
+        _=>IsTransientConnection?_loc["Set_AiMoveApp"]:CanConnectAi?_loc["Set_AiReadonly"]:_loc["Set_AiMissing"]
+    };
+    private int _copyState;
+    private async Task CopyConnectionAsync(string content,int state=1)
+    {
+        if(!CanConnectAi)return;
+        try{await Ui.Platform.CopyTextAsync(content);_copyState=state;}
+        catch(Exception ex){Meili.Core.Diagnostics.AppLog.Warn("ai-setup","Clipboard unavailable",ex);_copyState=2;}
+        OnPropertyChanged(nameof(AiConnectionStatus));
+    }
+    [RelayCommand]
+    private Task CopyUniversalSetupAsync()=>CopyConnectionAsync(_connection.ConfigurationPrompt(_loc.Language=="zh-CN"),5);
+    [RelayCommand]
+    private Task CopyCodexAsync()=>CopyConnectionAsync(_connection.CodexSetupCommand);
+    [RelayCommand]
+    private Task CopyClaudeAsync()=>CopyConnectionAsync(_connection.ClaudeSetupCommand);
+    [RelayCommand]
+    private Task CopyMcpTomlAsync()=>CopyConnectionAsync(_connection.Toml,3);
+    [RelayCommand]
+    private Task CopyMcpJsonAsync()=>CopyConnectionAsync(_connection.Json,3);
+    [RelayCommand]
+    private Task CopyAiPromptAsync(string client)
+    {
+        _=AiSkillInstaller.ClientFolder(client);
+        var invocation=client=="codex"?"$easysellput-local":"/easysellput-local";
+        return CopyConnectionAsync(invocation+(_loc.Language=="zh-CN"?" 比较 NVDA 和 AMD 的最新行情与近期事件，列出来源和行情时间。":" Compare NVDA and AMD quotes and recent events. Include source, as-of time and material data limitations."),4);
+    }
+
+    [RelayCommand]
+    private void OpenAiHelp(string client)
+    {
+        _=AiSkillInstaller.ClientFolder(client);
+        Ui.Platform.OpenUrl(client=="codex"?"https://developers.openai.com/codex/cli/":"https://code.claude.com/docs/en/setup");
+    }
+
     public bool IsFixedRate => RateModeIndex == 1;
 
     public bool IsManualProxy => ProxyModeIndex == 2;
     public string DataDirectory { get; }
     public string Version { get; } = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
 
-    public SettingsViewModel(SettingsStore store, LocalizationService loc, IThemeController theme, DataDirectoryInfo dataDir, IServiceProvider sp)
+    public SettingsViewModel(SettingsStore store, LocalizationService loc, IThemeController theme, DataDirectoryInfo dataDir, IServiceProvider sp, McpConnectionSetup? connection = null, IUpdateCoordinator? updater = null)
     {
         _store = store; _loc = loc; _theme = theme;
+        Updates = updater is not null ? new UpdateViewModel(store, loc, dataDir, updater)
+            : sp.GetService(typeof(UpdateViewModel)) as UpdateViewModel ?? new UpdateViewModel(store, loc, dataDir);
+        _connection = connection ?? McpConnectionSetup.Bundled(AppContext.BaseDirectory, dataDir.Path);
+        _loc.LanguageChanged += (_, _) => { OnPropertyChanged(nameof(AiConnectionStatus)); OnPropertyChanged(nameof(CodexAvailability)); OnPropertyChanged(nameof(ClaudeAvailability)); OnPropertyChanged(nameof(AiTerminalLabel)); };
         _network = sp.GetService(typeof(INetworkController)) as INetworkController;
         var s = store.Current;
         LanguageIndex = s.Language == "en-US" ? 1 : 0;
@@ -123,4 +176,7 @@ public partial class SettingsViewModel : ObservableObject
 
     [RelayCommand]
     private void OpenDataFolder() => Ui.Platform.OpenFolder(DataDirectory);
+
+    /// <summary>One desktop update state shared with the footer and notification dialog.</summary>
+    public UpdateViewModel Updates { get; }
 }

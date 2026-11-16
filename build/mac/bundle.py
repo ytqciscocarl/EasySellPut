@@ -27,7 +27,7 @@ def make_app(publish, app, version, icns):
     for root, _, files in os.walk(macos):
         for f in files:
             p = os.path.join(root, f)
-            executable = f == EXECUTABLE or f.endswith(".dylib") or f == "createdump"
+            executable = f in (EXECUTABLE, "easysellput") or f.endswith(".dylib") or f == "createdump"
             os.chmod(p, 0o755 if executable else 0o644)
     info = {
         "CFBundleDevelopmentRegion": "zh_CN",
@@ -41,9 +41,10 @@ def make_app(publish, app, version, icns):
         "CFBundleInfoDictionaryVersion": "6.0",
         "CFBundleShortVersionString": version,
         "CFBundleVersion": version,
-        "LSMinimumSystemVersion": "26.0",
+        "LSMinimumSystemVersion": "15.0",
         "LSApplicationCategoryType": "public.app-category.finance",
         "NSHighResolutionCapable": True,
+        "NSAppTransportSecurity": {"NSAllowsLocalNetworking": True},
         "NSSupportsAutomaticGraphicsSwitching": True,
         "NSPrincipalClass": "NSApplication",
         "NSHumanReadableCopyright": DISPLAY_NAME,

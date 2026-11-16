@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "easysellput": {
+      "command": "C:\\Tools\\EasySellPutCLI\\easysellput.exe",
+      "args": [
+        "mcp",
+        "serve"
+      ]
+    }
+  }
+}

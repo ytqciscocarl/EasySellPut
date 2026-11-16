@@ -22,4 +22,6 @@
     <!-- Same offline market data, IV and network fakes as the Windows UI tests. -->
     <Compile Include="..\Meili.App.Tests\FakeMarketDataService.cs" Link="FakeMarketDataService.cs" />
   </ItemGroup>
+  <ItemGroup><Compile Include="../Meili.Shared.Tests/FakeUpdates.cs" Link="FakeUpdates.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../Fixtures/QuotePanelMarketData.cs" Link="QuotePanelMarketData.cs" /></ItemGroup>
 </Project>

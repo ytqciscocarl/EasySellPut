@@ -1,0 +1,65 @@
+[
+  {
+    "file": "mac-market-status-1080p-en-US-True.png",
+    "width": 1920,
+    "height": 1080,
+    "fixture": true,
+    "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
+    "upscaled": false,
+    "sha256": "edfa607d6ab6a955b1b97699195703432822716ac4368731624fb8b439f2514e"
+  },
+  {
+    "file": "mac-market-status-details-zh-CN-False.png",
+    "width": 1920,
+    "height": 1080,
+    "fixture": true,
+    "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
+    "upscaled": false,
+    "sha256": "d92661000192b4b82640b916ba77e11157f1707581f7f67113b080e30df1cfb8"
+  },
+  {
+    "file": "mac-about-visible-1080p-en-US-True.png",
+    "width": 1920,
+    "height": 1080,
+    "fixture": true,
+    "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
+    "upscaled": false,
+    "sha256": "92297f30cb010163eac2a334af404151250b50e30e12e5de14181d650232357b"
+  },
+  {
+    "file": "mac-about-visible-1080p-zh-CN-False.png",
+    "width": 1920,
+    "height": 1080,
+    "fixture": true,
+    "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
+    "upscaled": false,
+    "sha256": "f6c31e8d35b3150e4d72f86eb9120d1ee9f021dfea74e201ebba39f85d455586"
+  },
+  {
+    "file": "mac-market-status-details-en-US-True.png",
+    "width": 1920,
+    "height": 1080,
+    "fixture": true,
+    "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
+    "upscaled": false,
+    "sha256": "4d978eb6f45a1179b29c78cf769dd9e3bf83bbc8f02b82b46dac696107411258"
+  },
+  {
+    "file": "mac-market-status-1080p-zh-CN-False.png",
+    "width": 1920,
+    "height": 1080,
+    "fixture": true,
+    "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
+    "upscaled": false,
+    "sha256": "5ca8322096e559233052229fd2ff57f3e785dcda61e77a4f12ab05413f12fd92"
+  },
+  {
+    "file": "mac-updates-development-unconfigured-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "fixture": true,
+    "renderer": "Avalonia Headless / Skia; unconfigured development updater",
+    "upscaled": false,
+    "sha256": "a4c4a20b7f9087778eeb6acf9f8cfccf114b4bfa723ba70489924c03ce1d887d"
+  }
+]

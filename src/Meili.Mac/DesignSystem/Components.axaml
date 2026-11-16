@@ -1,0 +1,39 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Reusable primitives: page markup selects variants, never copies templates. -->
+    <Style Selector="Window"><Setter Property="FontFamily" Value="{DynamicResource AppFont}"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/><Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}"/></Style>
+    <Style Selector="Button, ToggleButton">
+        <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/><Setter Property="FontSize" Value="{StaticResource BodyFontSize}"/>
+        <Setter Property="MinHeight" Value="{StaticResource ControlHeight}"/><Setter Property="Padding" Value="12,5"/><Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}"/>
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/><Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        <Setter Property="Transitions"><Transitions><DoubleTransition Property="Opacity" Duration="{StaticResource MotionFastDuration}"/><BrushTransition Property="Background" Duration="{StaticResource MotionFastDuration}"/><BrushTransition Property="BorderBrush" Duration="{StaticResource MotionFastDuration}"/></Transitions></Setter>
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter, ToggleButton:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource PressedBrush}"/></Style>
+    <Style Selector="Button.accent, Button.Accent, Button.Primary"><Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}"/></Style>
+    <Style Selector="Button.Accent:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.Primary:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentFillColorSecondaryBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/></Style>
+    <Style Selector="Button.Subtle, Button.Ghost"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/></Style>
+    <Style Selector="Button.Danger:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/></Style>
+    <Style Selector="Button.Danger"><Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/></Style>
+    <Style Selector="Button:disabled, ToggleButton:disabled"><Setter Property="Opacity" Value="0.45"/></Style>
+    <Style Selector="TextBox, ComboBox, NumericUpDown, AutoCompleteBox"><Setter Property="FontSize" Value="{StaticResource BodyFontSize}"/><Setter Property="MinHeight" Value="{StaticResource ControlHeight}"/><Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}"/><Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/><Setter Property="FontFamily" Value="{DynamicResource AppFont}"/></Style>
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement, ComboBox:focus /template/ Border#Background, NumericUpDown:focus-within /template/ Border#PART_BorderElement"><Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}"/></Style>
+    <Style Selector="TextBox.error /template/ Border#PART_BorderElement, TextBox:error /template/ Border#PART_BorderElement"><Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/></Style>
+    <Style Selector="ComboBoxItem:pointerover"><Setter Property="Background" Value="{DynamicResource HoverBrush}"/></Style>
+    <Style Selector="ComboBoxItem:selected"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Style>
+    <Style Selector="Border.Card"><Setter Property="CornerRadius" Value="{StaticResource CardCornerRadius}"/><Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}"/></Style>
+    <Style Selector="TextBlock.Code"><Setter Property="FontFamily" Value="{DynamicResource CodeFont}"/></Style>
+    <Style Selector="ProgressBar"><Setter Property="Foreground" Value="{DynamicResource BrandBrush}"/><Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}"/><Setter Property="CornerRadius" Value="4"/></Style>
+    <Style Selector="Window.ReducedMotion Button, Window.ReducedMotion ToggleButton"><Setter Property="Transitions" Value="{x:Null}"/></Style>
+    <Style Selector="CheckBox /template/ Border#NormalRectangle"><Setter Property="CornerRadius" Value="4"/></Style>
+    <Style Selector="Button:pressed, ToggleButton:pressed"><Setter Property="Opacity" Value="0.9"/></Style>
+    <Style Selector="Expander.Disclosure"><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="Padding" Value="0"/></Style>
+    <Style Selector="Expander.Disclosure /template/ ToggleButton#ExpanderHeader"><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="MinHeight" Value="28"/><Setter Property="Padding" Value="4,2"/><Setter Property="FontSize" Value="{StaticResource CaptionFontSize}"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/></Style>
+    <Style Selector="FlyoutPresenter.AppPopoverPresenter"><Setter Property="MaxWidth" Value="680"/><Setter Property="Padding" Value="12"/><Setter Property="CornerRadius" Value="12"/><Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/><Setter Property="FontFamily" Value="{DynamicResource AppFont}"/></Style>
+    <Style Selector="Border.FormRow > DockPanel > StackPanel"><Setter Property="VerticalAlignment" Value="Center"/></Style>
+    <Style Selector="Button.StatusEntry">
+        <Setter Property="Height" Value="{StaticResource StatusItemHeight}"/><Setter Property="MinHeight" Value="{StaticResource StatusItemHeight}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Ellipse.StatusDot"><Setter Property="Width" Value="{StaticResource StatusDotSize}"/><Setter Property="Height" Value="{StaticResource StatusDotSize}"/><Setter Property="VerticalAlignment" Value="Center"/></Style>
+</Styles>

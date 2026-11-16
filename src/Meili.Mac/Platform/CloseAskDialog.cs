@@ -6,7 +6,7 @@ using Meili.Core.Settings;
 namespace Meili.Mac.Platform;
 
 /// <summary>Three-way close prompt: hide to Dock, exit, or cancel.</summary>
-internal sealed class CloseAskDialog : Window
+internal sealed class CloseAskDialog : Meili.Mac.Views.Controls.AppDialog
 {
     public CloseAskDialog()
     {
@@ -17,7 +17,7 @@ internal sealed class CloseAskDialog : Window
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         var hide = new Button { Content = loc["Close_ToTray"], MinWidth = 88, Margin = new Thickness(0, 0, 8, 0), HorizontalContentAlignment = HorizontalAlignment.Center };
-        var exit = new Button { Content = loc["Close_Exit"], IsDefault = true, Classes = { "accent" }, MinWidth = 88, Margin = new Thickness(0, 0, 8, 0), HorizontalContentAlignment = HorizontalAlignment.Center };
+        var exit = new Button { Content = loc["Close_Exit"], IsDefault = true, Classes = { "Primary" }, MinWidth = 88, Margin = new Thickness(0, 0, 8, 0), HorizontalContentAlignment = HorizontalAlignment.Center };
         var cancel = new Button { Content = loc["Mac_Cancel"], IsCancel = true, MinWidth = 88, HorizontalContentAlignment = HorizontalAlignment.Center };
         hide.Click += (_, _) => Close(CloseAction.MinimizeToTray);
         exit.Click += (_, _) => Close(CloseAction.Exit);

@@ -1,0 +1,80 @@
+b1a8627 feat: add local CLI and MCP interfaces with cross-platform CI
+8d65854 test: verify live CLI and MCP data and fix macOS runner scheduling
+01988c3 build: ship native CLI and MCP packages for Windows and macOS
+e7eb208 feat: read news in lightweight system webviews on Windows and macOS
+15519fc test: exercise native reader lifecycle with a themed macOS host
+13a0348 fix: report native WebKit navigation failures in local diagnostics
+58b5b0e fix: track asynchronous WebKit document title and history updates
+b40a0a7 feat: replace K-line plots with offline TradingView charts in system WebViews
+3b77f13 fix: unify WebView chrome and chart UI with application design tokens
+fb64bcb fix: align chart crosshair and pane separators with theme tokens
+6705e28 feat: link option chain selection and strategy payoff in a local WebView workbench
+ec76a6f fix: validate full payoff knots and retain draft underlying identity
+27ebbd2 feat: link chart news and calendar events across desktop CLI and MCP
+f4b727b fix: coalesce synchronous timeline with initial chart rendering
+2ce1980 feat: simplify timeline with progressive event details and selection feedback
+007c436 feat: close desktop MCP coverage gaps and enforce feature inventory
+9c9efc0 fix: release test SQLite pools and support selected OI expiry
+6a494c6 docs: map selected option seeds to explicit strategy legs
+58a95d2 feat: package native desktops with bundled MCP and add AI connection buttons
+0d92ea7 fix: seal macOS automation as resources and sample empty status padding
+3e1e322 fix: verify embedded macOS runtime from single-file manifest
+34d0378 feat: pair Codex and Claude Code MCP setup with companion skill
+31c36c8 ci: require companion skill coverage for every MCP tool
+50ab54b feat: redesign chart workspace with TradingView-style zones
+23f78a8 docs: require actual screenshots for future UI changes
+4ca0c9a feat: clarify chart event markers and add hover tooltips
+213ed6d feat: modernize chart controls and reveal details on demand
+bc6451f fix: make enabled event filters recognizable beyond color
+07ff354 feat: keep chart toolbar on one row and remove forced breaks
+8a279f9 feat: add native macOS menu bar stock quotes
+ef4385a fix: update menu bar colors after preference changes
+ec1821d Improve AI setup with universal prompts and live MCP status
+c00c283 Compare canonical Windows paths in AI setup smoke checks
+6ee5ed9 Group chart news by date with segmented history navigation
+1edf5a2 Verify local MCP through direct process streams on Windows
+abce96f Keep news filters on one row and capture history panel closeups
+d5c68e0 Center icon buttons and audit desktop button alignment
+e6f7774 Shade pre-market and after-hours across intraday chart panes
+6990125 Add signed desktop update discovery, download and transactional installation
+d7b1bce Make installer cancellation graceful and isolate MCP heartbeat reader fixtures
+ec60510 Keep market sidebar permanent with TradingView-style navigation rail
+16c8a47 Add Discord-style workspace navigation and personal browser tabs
+1b41aaf Smooth workspace selection transitions and record preference failures
+df9fbdd Align chart button families and improve drawing previews, editing and deletion
+18eda4d Reject drawing events against a chart model that has already changed
+883f892 Target the actual symbol dropdown in Windows geometry regression
+1f7d375 Keep saved drawing selection inside the price pane
+f62954e Make rapid line selection independent of chart double-click handling
+1fdab8e Unify Discord navigation and footer with pinned Lucide icons
+0bbed66 Fix WPF settings icon styles after Lucide migration
+3e1111c Introduce Claude-inspired reusable desktop design system
+88211c2 Make native theme regressions follow shared design tokens
+67f0357 Load WPF component metrics in their owning resource dictionary
+f42912f Improve page UX with progressive controls and verified interaction feedback
+900e289 Keep compact option chains usable and harden cross-platform UX acceptance
+7f87bb0 Replace wide help and settings disclosures with reusable icon popovers
+69173e2 Add rich intraday market glance panels for macOS status and Windows tray
+fe19432 Align Windows quote panel spacing and retain native preview evidence
+385f078 Capture Windows quote panel after local header feedback settles
+674f54e Add background lifecycle and idle resource budgets; expand desktop CI
+36f615b Prevent Avalonia auto-show on background startup and document lifecycle policy
+51226e2 Resolve main window icon from its owning assembly in native regression hosts
+160fbb4 Qualify desktop image resources and isolate preset regression setup
+e243c77 Detach system theme watcher before closing a restored background window
+7936fec Open news inline in a responsive native split with compact reader controls
+15ca7e6 Measure article reloads separately from browser favicon requests
+01d5c7a Preserve reader split ratios and validate actual native client space
+c530f06 Show complete candle event groups and keep news reading side by side
+1f80763 Wait for rendered split content and reject obscured desktop screenshots
+5ba4e80 Align form labels, help icons and fields with reusable cross-platform headers
+ddb5bfc Clean up removed settings help-row whitespace
+01899d3 Merge upstream 0.5.3 into work and preserve UI and async lifecycle contracts
+ec734e3 Blend platform title bars into the shared theme and preserve native window controls
+2db1048 Remove visible window branding while retaining native caption safe areas
+8f67bb9 Condense English engineering rules and define architecture, UI reuse and CI gates
+60cdad3 Move official releases to main-only Actions with signing, provenance and native package gates
+1fc1697 Validate raw zip names consistently across Windows and Unix release runners
+00dc901 Resolve release tags explicitly instead of ambiguous branch names
+cbe6371 Clarify workflow and job names with platform-first labels and matching release gates
+27d261b Keep desktop coverage guards independent of workflow display labels

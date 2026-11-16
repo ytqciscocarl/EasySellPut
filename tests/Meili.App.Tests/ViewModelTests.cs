@@ -57,6 +57,10 @@ public class ViewModelTests
             var vm = AppServices.Get<StrategyViewModel>();
             vm.SymbolText = "MSFT";
             await vm.LoadAsync();
+            // The shared desktop model intentionally preserves a previous manual draft.
+            // This test exercises a newly applied preset, independently of test order.
+            vm.SelectedPreset = vm.Presets.First(p => p.Kind == Meili.Analytics.StrategyKind.CoveredCall);
+            vm.ApplyPresetCommand.Execute(null);
             Assert.NotEmpty(vm.Legs);
             Assert.True(vm.HasCurve);
             vm.Deactivate();

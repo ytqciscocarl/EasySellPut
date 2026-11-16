@@ -5,6 +5,7 @@
     <RootNamespace>Meili.Shared</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../Meili.Application/Meili.Application.csproj" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="ScottPlot" />
@@ -13,6 +14,22 @@
     <ProjectReference Include="..\Meili.Core\Meili.Core.csproj" />
     <ProjectReference Include="..\Meili.Data\Meili.Data.csproj" />
     <ProjectReference Include="..\Meili.Analytics\Meili.Analytics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Assets/NavigationIcons/LICENSE" LogicalName="NavigationIcons/LICENSE" />
+    <EmbeddedResource Include="WebCharts/index.html" LogicalName="WebCharts/index.html" />
+    <EmbeddedResource Include="Assets/Fonts/*" LogicalName="WebCharts/fonts/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="WebCharts/design-tokens.css" LogicalName="WebCharts/design-tokens.css" />
+    <EmbeddedResource Include="WebCharts/components.css" LogicalName="WebCharts/components.css" />
+    <EmbeddedResource Include="WebCharts/motion.js" LogicalName="WebCharts/motion.js" />
+    <EmbeddedResource Include="WebCharts/icons.js" LogicalName="WebCharts/icons.js" />
+    <EmbeddedResource Include="WebCharts/chart.js" LogicalName="WebCharts/chart.js" />
+    <EmbeddedResource Include="WebCharts/workbench.html" LogicalName="WebCharts/workbench.html" />
+    <EmbeddedResource Include="WebCharts/workbench.js" LogicalName="WebCharts/workbench.js" />
+    <EmbeddedResource Include="WebCharts/vendor/lightweight-charts.js" LogicalName="WebCharts/vendor/lightweight-charts.js" />
+    <EmbeddedResource Include="WebCharts/vendor/LICENSE" LogicalName="WebCharts/vendor/LICENSE" />
+    <EmbeddedResource Include="WebCharts/vendor/NOTICE" LogicalName="WebCharts/vendor/NOTICE" />
+    <EmbeddedResource Include="WebCharts/vendor/provenance.json" LogicalName="WebCharts/vendor/provenance.json" />
   </ItemGroup>
   <ItemGroup>
     <!-- One copy of the UI text: the WPF string dictionaries, read as plain key/value pairs on every platform

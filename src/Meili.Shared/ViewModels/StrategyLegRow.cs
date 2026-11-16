@@ -27,8 +27,12 @@ public sealed record EnumChoice<T>(T Value, string Label) where T : struct, Enum
 
 public partial class StrategyLegRow : ObservableObject
 {
+    public Guid Id { get; } = Guid.NewGuid();
     private readonly StrategyViewModel _owner;
     private bool _suppress;
+    public bool EntryPriceLocked { get; private set; }
+    private bool _ivLocked;
+    internal void LockEntryPrice() => EntryPriceLocked = true;
 
     [ObservableProperty] public partial LegType Type { get; set; } = LegType.Call;
     [ObservableProperty] public partial PositionSide Side { get; set; } = PositionSide.Long;
@@ -62,8 +66,8 @@ public partial class StrategyLegRow : ObservableObject
         _suppress = true;
         try
         {
-            PremiumText = F(premium);
-            IvText = double.IsFinite(iv) ? (iv * 100).ToString("0.0", CultureInfo.InvariantCulture) : IvText;
+            if (!EntryPriceLocked) PremiumText = F(premium);
+            if (!_ivLocked) IvText = double.IsFinite(iv) ? (iv * 100).ToString("0.0", CultureInfo.InvariantCulture) : IvText;
         }
         finally { _suppress = false; }
     }
@@ -128,8 +132,8 @@ public partial class StrategyLegRow : ObservableObject
     partial void OnTypeChanged(LegType value) { RefreshLabels(); Notify(); }
     partial void OnSideChanged(PositionSide value) { RefreshLabels(); Notify(); }
     partial void OnStrikeTextChanged(string value) => Notify();
-    partial void OnPremiumTextChanged(string value) => Notify();
-    partial void OnIvTextChanged(string value) => Notify();
+    partial void OnPremiumTextChanged(string value) { if (!_suppress) EntryPriceLocked = true; Notify(); }
+    partial void OnIvTextChanged(string value) { if (!_suppress) _ivLocked = true; Notify(); }
     partial void OnQtyTextChanged(string value) => Notify();
     partial void OnExpiryTextChanged(string value) => Notify();
 

@@ -1,0 +1,25 @@
+<controls:AppDialog xmlns="https://github.com/avaloniaui"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:controls="using:Meili.Mac.Views.Controls" xmlns:vm="using:Meili.Shared.ViewModels"
+ x:Class="Meili.Mac.Views.UpdateDialog" x:DataType="vm:UpdateViewModel"
+ Width="520" Title="{Binding UpdatePromptTitle}">
+ <StackPanel Margin="24" Spacing="16">
+  <StackPanel Spacing="6">
+   <controls:LucideIcon Kind="Download" Width="28" Height="28" HorizontalAlignment="Left"/>
+   <TextBlock Classes="SectionTitle" Text="{Binding UpdatePromptTitle}" TextWrapping="Wrap"/>
+   <TextBlock Classes="Caption" Text="{Binding UpdateVersionLine}"/>
+  </StackPanel>
+  <ScrollViewer MaxHeight="240" IsVisible="{Binding HasUpdateNotes}"><TextBlock Text="{Binding UpdateNotes}" TextWrapping="Wrap"/></ScrollViewer>
+  <TextBlock Classes="Caption" Text="{Binding UpdateStatusText}" TextWrapping="Wrap"/>
+  <DockPanel IsVisible="{Binding ShowUpdateProgress}">
+   <Button DockPanel.Dock="Right" Classes="Subtle Icon" Command="{Binding CancelUpdateCommand}" ToolTip.Tip="{DynamicResource Upd_Cancel}" AutomationProperties.Name="{DynamicResource Upd_Cancel}" Margin="8,0,0,0"><controls:LucideIcon Kind="Close"/></Button>
+   <ProgressBar Minimum="0" Maximum="100" Value="{Binding UpdateProgress}" IsIndeterminate="{Binding IsUpdateIndeterminate}" Height="4" MinHeight="0" VerticalAlignment="Center"/>
+  </DockPanel>
+  <WrapPanel HorizontalAlignment="Right">
+   <Button x:Name="LaterButton" Content="{DynamicResource Upd_Later}" Command="{Binding DismissUpdatePromptCommand}" Margin="0,0,8,0" IsCancel="True"/>
+   <Button Content="{DynamicResource Upd_OpenDownload}" Command="{Binding OpenUpdateFolderCommand}" IsVisible="{Binding ShowUpdateFolder}" Margin="0,0,8,0"/>
+   <Button Classes="Primary" Content="{DynamicResource Upd_Download}" Command="{Binding DownloadUpdateCommand}" IsVisible="{Binding ShowDownloadUpdate}"/>
+   <Button Classes="Primary" Content="{DynamicResource Upd_Install}" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding ShowInstallUpdate}"/>
+  </WrapPanel>
+ </StackPanel>
+</controls:AppDialog>

@@ -39,6 +39,8 @@ public partial class App : Application
         AppServices.Provider = services.BuildServiceProvider();
         perf?.Mark("services");
 
+        foreach(var (key,family) in new[]{("AppFont","Anthropic Sans"),("NumberFont","Anthropic Sans"),("HeadingFont","Anthropic Serif"),("CodeFont","Anthropic Mono")})
+            if(System.Windows.Media.Fonts.SystemFontFamilies.Any(f=>f.Source==family))Resources[key]=new System.Windows.Media.FontFamily(family);
         var settings = AppServices.Get<SettingsStore>().Load();
         AppServices.Get<LocalizationService>().Apply(settings.Language);
         ThemeService.ApplyUpDownColors(settings.EffectiveUpDownColors());
@@ -60,8 +62,8 @@ public partial class App : Application
             window.ContentRendered += (_, _) => perf.Mark("first-render");
             Dispatcher.BeginInvoke(() => perf.Mark("idle"), DispatcherPriority.ApplicationIdle);
         }
-        window.Show();
-        perf?.Mark("window-shown");
+        if(options.StartInBackground)window.PrepareBackgroundStartup();else window.Show();
+        perf?.Mark(options.StartInBackground?"background-ready":"window-shown");
         AppComposition.OnStarted(AppServices.Provider);
         if (options.Smoke)
             Dispatcher.BeginInvoke(async () =>
@@ -70,7 +72,7 @@ public partial class App : Application
                 try { code = await new SmokeRunner().RunAsync(window, options); }
                 catch (Exception ex) { SmokeRunner.RecordError(ex); code = 2; }
                 perf?.Mark("smoke-done");   // memory after every page was opened once
-                Shutdown(code);
+                window.RunInBackground();await Task.Delay(100);Shutdown(code);
             }, DispatcherPriority.ApplicationIdle);
     }
 
